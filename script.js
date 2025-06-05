@@ -693,11 +693,12 @@ function updateChart() {
     if (window.stockData) {
         drawChart(window.stockData);
         
-        // Save indicator preferences
+        // Save indicator preferences including volume
         const indicatorPrefs = {
             sma: document.getElementById('sma-checkbox').checked,
             rsi: document.getElementById('rsi-checkbox').checked,
             macd: document.getElementById('macd-checkbox').checked,
+            volume: document.getElementById('volume-checkbox').checked,
             settings: indicatorSettings
         };
         try {
@@ -2845,18 +2846,36 @@ function renderHotStocks() {
 
 // Function to load saved indicator preferences
 function loadSavedIndicatorPreferences() {
-    // Don't load any saved preferences - start fresh each time
-    // Ensure all indicators are off by default
-    document.getElementById('sma-checkbox').checked = false;
-    document.getElementById('rsi-checkbox').checked = false;
-    document.getElementById('macd-checkbox').checked = false;
-    
-    // Hide all indicator badges
-    document.getElementById('sma-indicator').style.display = 'none';
-    document.getElementById('rsi-indicator').style.display = 'none';
-    document.getElementById('macd-indicator').style.display = 'none';
-    
-    console.log('All indicators set to default (off) state');
+    try {
+        const saved = localStorage.getItem('stockapp_indicator_prefs');
+        if (saved) {
+            const prefs = JSON.parse(saved);
+            
+            // Restore indicator states
+            document.getElementById('sma-checkbox').checked = prefs.sma || false;
+            document.getElementById('rsi-checkbox').checked = prefs.rsi || false;
+            document.getElementById('macd-checkbox').checked = prefs.macd || false;
+            document.getElementById('volume-checkbox').checked = prefs.volume || false;
+            
+            // Show/hide indicator badges
+            ['sma', 'rsi', 'macd', 'volume'].forEach(indicator => {
+                const checkbox = document.getElementById(`${indicator}-checkbox`);
+                const badge = document.getElementById(`${indicator}-indicator`);
+                if (badge) {
+                    badge.style.display = checkbox.checked ? 'flex' : 'none';
+                }
+            });
+            
+            // Restore settings if available
+            if (prefs.settings) {
+                Object.assign(indicatorSettings, prefs.settings);
+            }
+            
+            console.log('Indicator preferences loaded successfully');
+        }
+    } catch (e) {
+        console.warn('Could not load indicator preferences from localStorage', e);
+    }
 }
 
 // Function to setup indicator settings
@@ -3600,6 +3619,15 @@ function drawCandlestickChart(validData, chartDiv, theme) {
         
         // Add technical indicators based on checkboxes
         addIntegratedIndicators(datasets, scales, validData, theme);
+        
+        // Debug: Log volume data if volume indicator is enabled
+        if (document.getElementById('volume-checkbox').checked) {
+            console.log('Volume indicator enabled, data sample:', validData.slice(0, 3).map(d => ({
+                date: d.date,
+                volume: d.volume,
+                close: d.close
+            })));
+        }
         
         // Create proper OHLC candlesticks using annotations
         const candleAnnotations = {};
@@ -4371,7 +4399,7 @@ function updateTpSlPosition(baseId, offsetX, offsetY) {
     }
 }
 
-// Update TPSL line position
+// Update TPSL line position with enhanced range adjustment
 function updateTpSlLinePosition(fullId, offsetY) {
     const baseId = getBaseAnnotationId(fullId);
     const tpslIndex = chartAnnotations.tpsl.findIndex(tpsl => fullId.startsWith(tpsl.id));
@@ -4380,65 +4408,137 @@ function updateTpSlLinePosition(fullId, offsetY) {
         const tpsl = chartAnnotations.tpsl[tpslIndex];
         const annotations = stockChart.options.plugins.annotation.annotations;
         
+        // Store previous values for validation
+        const prevEntry = tpsl.entry.y;
+        const prevTP = tpsl.takeProfit.y;
+        const prevSL = tpsl.stopLoss.y;
+        
         // Determine which line was moved and update accordingly
+        let lineType = '';
         if (fullId.includes('_entry')) {
             tpsl.entry.y += offsetY;
+            lineType = 'Entry';
         } else if (fullId.includes('_tp')) {
             tpsl.takeProfit.y += offsetY;
+            lineType = 'Take Profit';
         } else if (fullId.includes('_sl')) {
             tpsl.stopLoss.y += offsetY;
+            lineType = 'Stop Loss';
+        }
+        
+        // Validate logical order for bullish setups
+        if (tpsl.type === 'bullish') {
+            if (tpsl.stopLoss.y >= tpsl.entry.y) {
+                tpsl.stopLoss.y = tpsl.entry.y - Math.abs(prevEntry - prevSL);
+                showInfo('⚠️ Stop Loss adjusted to maintain below entry for bullish setup');
+            }
+            if (tpsl.takeProfit.y <= tpsl.entry.y) {
+                tpsl.takeProfit.y = tpsl.entry.y + Math.abs(prevTP - prevEntry);
+                showInfo('⚠️ Take Profit adjusted to maintain above entry for bullish setup');
+            }
+        }
+        
+        // Validate logical order for bearish setups
+        if (tpsl.type === 'bearish') {
+            if (tpsl.stopLoss.y <= tpsl.entry.y) {
+                tpsl.stopLoss.y = tpsl.entry.y + Math.abs(prevSL - prevEntry);
+                showInfo('⚠️ Stop Loss adjusted to maintain above entry for bearish setup');
+            }
+            if (tpsl.takeProfit.y >= tpsl.entry.y) {
+                tpsl.takeProfit.y = tpsl.entry.y - Math.abs(prevEntry - prevTP);
+                showInfo('⚠️ Take Profit adjusted to maintain below entry for bearish setup');
+            }
         }
         
         // Recalculate risk/reward ratio
         const risk = Math.abs(tpsl.entry.y - tpsl.stopLoss.y);
         const reward = Math.abs(tpsl.takeProfit.y - tpsl.entry.y);
-        tpsl.riskReward = (reward / risk).toFixed(2);
+        tpsl.riskReward = risk > 0 ? (reward / risk).toFixed(2) : '∞';
         
-        // Update info label
+        // Update info label with enhanced information
         const infoKey = tpsl.id + '_info';
         if (annotations[infoKey] && annotations[infoKey].label) {
-            annotations[infoKey].label.content = `${tpsl.type.toUpperCase()} R:R ${tpsl.riskReward}:1`;
+            const risRew = tpsl.riskReward === '∞' ? '∞' : tpsl.riskReward + ':1';
+            const profitPct = ((reward / tpsl.entry.y) * 100).toFixed(1);
+            const lossPct = ((risk / tpsl.entry.y) * 100).toFixed(1);
+            annotations[infoKey].label.content = [
+                `${tpsl.type.toUpperCase()} Setup`,
+                `R:R ${risRew}`,
+                `Profit: ${profitPct}% | Loss: ${lossPct}%`
+            ];
         }
         
-        // Recalculate and update zones
+        // Recalculate and update zones with improved visual feedback
         const minX = Math.min(tpsl.entry.x, tpsl.stopLoss.x, tpsl.takeProfit.x);
         const maxX = Math.max(tpsl.entry.x, tpsl.stopLoss.x, tpsl.takeProfit.x);
-        const boxWidth = (maxX - minX) || 86400000;
+        const boxWidth = (maxX - minX) || 86400000 * 5; // 5 days default width
         
-        // Update Take Profit zone
+        // Update Take Profit zone with gradient effect
         const tpMinY = Math.min(tpsl.entry.y, tpsl.takeProfit.y);
         const tpMaxY = Math.max(tpsl.entry.y, tpsl.takeProfit.y);
         const tpZoneKey = tpsl.id + '_tp_zone';
         if (annotations[tpZoneKey]) {
             annotations[tpZoneKey].yMin = tpMinY;
             annotations[tpZoneKey].yMax = tpMaxY;
+            // Enhanced visual feedback for profit zone
+            annotations[tpZoneKey].backgroundColor = 'rgba(34, 197, 94, 0.15)'; // Green with transparency
+            annotations[tpZoneKey].borderColor = 'rgba(34, 197, 94, 0.6)';
         }
         
-        // Update Stop Loss zone
+        // Update Stop Loss zone with gradient effect
         const slMinY = Math.min(tpsl.entry.y, tpsl.stopLoss.y);
         const slMaxY = Math.max(tpsl.entry.y, tpsl.stopLoss.y);
         const slZoneKey = tpsl.id + '_sl_zone';
         if (annotations[slZoneKey]) {
             annotations[slZoneKey].yMin = slMinY;
             annotations[slZoneKey].yMax = slMaxY;
+            // Enhanced visual feedback for loss zone
+            annotations[slZoneKey].backgroundColor = 'rgba(239, 68, 68, 0.15)'; // Red with transparency
+            annotations[slZoneKey].borderColor = 'rgba(239, 68, 68, 0.6)';
         }
         
-        // Update line labels to show new prices
+        // Update line labels with enhanced price and percentage information
         const entryKey = tpsl.id + '_entry';
         const tpKey = tpsl.id + '_tp';
         const slKey = tpsl.id + '_sl';
         
         if (annotations[entryKey] && annotations[entryKey].label) {
             annotations[entryKey].label.content = `Entry: $${tpsl.entry.y.toFixed(2)}`;
+            // Highlight the moved line
+            if (lineType === 'Entry') {
+                annotations[entryKey].borderColor = '#FFD700';
+                annotations[entryKey].borderWidth = 4;
+            }
         }
         if (annotations[tpKey] && annotations[tpKey].label) {
-            annotations[tpKey].label.content = `TP: $${tpsl.takeProfit.y.toFixed(2)}`;
+            const tpGain = ((Math.abs(tpsl.takeProfit.y - tpsl.entry.y) / tpsl.entry.y) * 100).toFixed(1);
+            annotations[tpKey].label.content = `TP: $${tpsl.takeProfit.y.toFixed(2)} (+${tpGain}%)`;
+            if (lineType === 'Take Profit') {
+                annotations[tpKey].borderColor = '#FFD700';
+                annotations[tpKey].borderWidth = 4;
+            }
         }
         if (annotations[slKey] && annotations[slKey].label) {
-            annotations[slKey].label.content = `SL: $${tpsl.stopLoss.y.toFixed(2)}`;
+            const slLoss = ((Math.abs(tpsl.stopLoss.y - tpsl.entry.y) / tpsl.entry.y) * 100).toFixed(1);
+            annotations[slKey].label.content = `SL: $${tpsl.stopLoss.y.toFixed(2)} (-${slLoss}%)`;
+            if (lineType === 'Stop Loss') {
+                annotations[slKey].borderColor = '#FFD700';
+                annotations[slKey].borderWidth = 4;
+            }
         }
         
-        showInfo(`TP/SL ${fullId.includes('_entry') ? 'Entry' : fullId.includes('_tp') ? 'Take Profit' : 'Stop Loss'} updated. New R:R ${tpsl.riskReward}:1`);
+        // Provide comprehensive feedback
+        const riskAmount = `$${risk.toFixed(2)}`;
+        const rewardAmount = `$${reward.toFixed(2)}`;
+        showInfo(`${lineType} moved to $${(tpsl[lineType.toLowerCase().replace(' ', '')]?.y || tpsl.entry.y).toFixed(2)}. Risk: ${riskAmount} | Reward: ${rewardAmount} | R:R ${tpsl.riskReward === '∞' ? '∞' : tpsl.riskReward + ':1'}`);
+        
+        // Auto-save with debouncing
+        clearTimeout(window.tpslSaveTimeout);
+        window.tpslSaveTimeout = setTimeout(() => {
+            if (window.currentSymbol) {
+                saveAnnotationsToStorage(window.currentSymbol);
+            }
+        }, 1000);
     }
 }
 

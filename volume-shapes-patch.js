@@ -1,95 +1,84 @@
 // Volume Indicator and Shape Drawing Functionality Patch
 // This file contains enhancements for the stock analysis application
 
-// Volume Settings Event Handlers
+// Ensure this runs after the main script loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Volume Settings
-    const saveVolumeBtn = document.getElementById('save-volume-settings');
+    console.log('Loading Volume and Shape patch...');
     
+    // Wait for main script to initialize
+    setTimeout(function() {
+        initializeVolumeAndShapeFeatures();
+    }, 1000);
+});
+
+function initializeVolumeAndShapeFeatures() {
+    console.log('Initializing Volume and Shape features...');
+    
+    // Volume Settings Event Handler
+    const saveVolumeBtn = document.getElementById('save-volume-settings');
     if (saveVolumeBtn) {
-        saveVolumeBtn.addEventListener('click', () => {
-            if (typeof indicatorSettings !== 'undefined') {
-                indicatorSettings.volume.maPeriod = parseInt(document.getElementById('volume-ma-period').value);
-                indicatorSettings.volume.upColor = document.getElementById('volume-up-color').value;
-                indicatorSettings.volume.downColor = document.getElementById('volume-down-color').value;
-                indicatorSettings.volume.maColor = document.getElementById('volume-ma-color').value;
-                indicatorSettings.volume.scaleFactor = parseFloat(document.getElementById('volume-scale').value);
-                indicatorSettings.volume.showMA = document.getElementById('volume-show-ma').checked;
+        // Remove any existing listeners
+        saveVolumeBtn.replaceWith(saveVolumeBtn.cloneNode(true));
+        const newSaveVolumeBtn = document.getElementById('save-volume-settings');
+        
+        newSaveVolumeBtn.addEventListener('click', () => {
+            console.log('Saving volume settings...');
+            if (typeof window.indicatorSettings !== 'undefined') {
+                window.indicatorSettings.volume.maPeriod = parseInt(document.getElementById('volume-ma-period').value);
+                window.indicatorSettings.volume.upColor = document.getElementById('volume-up-color').value;
+                window.indicatorSettings.volume.downColor = document.getElementById('volume-down-color').value;
+                window.indicatorSettings.volume.maColor = document.getElementById('volume-ma-color').value;
+                window.indicatorSettings.volume.scaleFactor = parseFloat(document.getElementById('volume-scale').value);
+                window.indicatorSettings.volume.showMA = document.getElementById('volume-show-ma').checked;
                 
                 const modal = bootstrap.Modal.getInstance(document.getElementById('volumeSettingsModal'));
-                modal.hide();
+                if (modal) modal.hide();
                 
                 // Update chart if Volume is active
-                if (document.getElementById('volume-checkbox').checked) {
-                    updateChart();
+                if (document.getElementById('volume-checkbox').checked && typeof window.updateChart === 'function') {
+                    window.updateChart();
                 }
                 
-                showInfo('Volume settings updated successfully!');
+                if (typeof window.showInfo === 'function') {
+                    window.showInfo('Volume settings updated successfully!');
+                }
             }
         });
+        console.log('Volume settings handler attached');
     }
 
     // Shape Drawing Event Handlers
     const addShapeBtn = document.getElementById('add-shape-btn');
     const clearShapesBtn = document.getElementById('clear-shapes-btn');
-    const shapeColorInput = document.getElementById('shape-color');
-    const shapeSizeSelect = document.getElementById('shape-size');
-    const shapeOpacitySelect = document.getElementById('shape-opacity');
-    const shapeTypeSelect = document.getElementById('shape-type');
-    const shapeLabelInput = document.getElementById('shape-label');
-
-    // Update shape settings when controls change
-    if (shapeColorInput) {
-        shapeColorInput.addEventListener('change', function() {
-            if (typeof shapeSettings !== 'undefined') {
-                shapeSettings.color = this.value;
-            }
-        });
-    }
-
-    if (shapeSizeSelect) {
-        shapeSizeSelect.addEventListener('change', function() {
-            if (typeof shapeSettings !== 'undefined') {
-                shapeSettings.size = parseInt(this.value);
-            }
-        });
-    }
-
-    if (shapeOpacitySelect) {
-        shapeOpacitySelect.addEventListener('change', function() {
-            if (typeof shapeSettings !== 'undefined') {
-                shapeSettings.opacity = parseFloat(this.value);
-            }
-        });
-    }
-
-    if (shapeTypeSelect) {
-        shapeTypeSelect.addEventListener('change', function() {
-            if (typeof shapeSettings !== 'undefined') {
-                shapeSettings.type = this.value;
-            }
-        });
-    }
-
-    if (shapeLabelInput) {
-        shapeLabelInput.addEventListener('change', function() {
-            if (typeof shapeSettings !== 'undefined') {
-                shapeSettings.label = this.value;
-            }
-        });
-    }
-
-    // Add Shape Button
+    
     if (addShapeBtn) {
-        addShapeBtn.addEventListener('click', () => {
-            if (typeof stockChart === 'undefined' || !stockChart) {
-                showError('Chart not available. Please load stock data first.');
+        // Remove any existing listeners
+        addShapeBtn.replaceWith(addShapeBtn.cloneNode(true));
+        const newAddShapeBtn = document.getElementById('add-shape-btn');
+        
+        newAddShapeBtn.addEventListener('click', () => {
+            console.log('Add shape button clicked');
+            if (typeof window.stockChart === 'undefined' || !window.stockChart) {
+                if (typeof window.showError === 'function') {
+                    window.showError('Chart not available. Please load stock data first.');
+                }
                 return;
             }
             
-            if (typeof shapeMode !== 'undefined') {
-                shapeMode = true;
-                showInfo('Click on the chart to add a shape.');
+            // Update shape settings from form
+            if (typeof window.shapeSettings !== 'undefined') {
+                window.shapeSettings.type = document.getElementById('shape-type').value;
+                window.shapeSettings.color = document.getElementById('shape-color').value;
+                window.shapeSettings.size = parseInt(document.getElementById('shape-size').value);
+                window.shapeSettings.opacity = parseFloat(document.getElementById('shape-opacity').value);
+                window.shapeSettings.label = document.getElementById('shape-label').value;
+            }
+            
+            if (typeof window.shapeMode !== 'undefined') {
+                window.shapeMode = true;
+                if (typeof window.showInfo === 'function') {
+                    window.showInfo('Click on the chart to add a shape.');
+                }
                 
                 // Close dropdown
                 const shapeDropdown = document.getElementById('shape-options');
@@ -99,84 +88,135 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        console.log('Add shape handler attached');
     }
 
-    // Clear Shapes Button
     if (clearShapesBtn) {
-        clearShapesBtn.addEventListener('click', () => {
-            clearAllShapes();
+        // Remove any existing listeners
+        clearShapesBtn.replaceWith(clearShapesBtn.cloneNode(true));
+        const newClearShapesBtn = document.getElementById('clear-shapes-btn');
+        
+        newClearShapesBtn.addEventListener('click', () => {
+            console.log('Clear shapes button clicked');
+            if (typeof clearAllShapes === 'function') {
+                clearAllShapes();
+            }
         });
+        console.log('Clear shapes handler attached');
     }
 
-    // Add Volume indicator support to existing functions
+    // Shape settings change handlers
+    const shapeInputs = ['shape-type', 'shape-color', 'shape-size', 'shape-opacity', 'shape-label'];
+    shapeInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input && typeof window.shapeSettings !== 'undefined') {
+            input.addEventListener('change', function() {
+                switch(inputId) {
+                    case 'shape-type':
+                        window.shapeSettings.type = this.value;
+                        break;
+                    case 'shape-color':
+                        window.shapeSettings.color = this.value;
+                        break;
+                    case 'shape-size':
+                        window.shapeSettings.size = parseInt(this.value);
+                        break;
+                    case 'shape-opacity':
+                        window.shapeSettings.opacity = parseFloat(this.value);
+                        break;
+                    case 'shape-label':
+                        window.shapeSettings.label = this.value;
+                        break;
+                }
+            });
+        }
+    });
+
+    // Override the addSelectedIndicator function to support Volume
     if (typeof window.addSelectedIndicator === 'function') {
         const originalAddSelectedIndicator = window.addSelectedIndicator;
         window.addSelectedIndicator = function() {
             const select = document.getElementById('indicator-select');
             const selectedValue = select.value;
+            console.log('Adding indicator:', selectedValue);
             
             if (selectedValue === 'volume') {
                 // Update the corresponding checkbox
                 const checkbox = document.getElementById('volume-checkbox');
-                checkbox.checked = true;
-                
-                // Show the indicator badge
-                const badge = document.getElementById('volume-indicator');
-                if (badge) {
-                    badge.style.display = 'flex';
+                if (checkbox) {
+                    checkbox.checked = true;
+                    
+                    // Show the indicator badge
+                    const badge = document.getElementById('volume-indicator');
+                    if (badge) {
+                        badge.style.display = 'flex';
+                    }
+                    
+                    // Reset the dropdown
+                    select.value = '';
+                    
+                    if (typeof window.showInfo === 'function') {
+                        window.showInfo('Volume indicator added. Use settings to customize.');
+                    }
+                    
+                    // Update the chart
+                    if (typeof window.updateChart === 'function') {
+                        window.updateChart();
+                    }
                 }
-                
-                // Reset the dropdown
-                select.value = '';
-                
-                showInfo('Volume indicator added. Use settings to customize.');
-                
-                // Update the chart
-                updateChart();
             } else {
                 // Call original function for other indicators
                 originalAddSelectedIndicator.call(this);
             }
         };
+        console.log('addSelectedIndicator function overridden for Volume support');
     }
 
-    // Add Volume indicator support to existing removeIndicator function
+    // Override the removeIndicator function to support Volume
     if (typeof window.removeIndicator === 'function') {
         const originalRemoveIndicator = window.removeIndicator;
         window.removeIndicator = function(indicator) {
+            console.log('Removing indicator:', indicator);
             if (indicator === 'volume') {
                 // Update the corresponding checkbox
                 const checkbox = document.getElementById('volume-checkbox');
-                checkbox.checked = false;
-                
-                // Hide the indicator badge
-                const badge = document.getElementById('volume-indicator');
-                if (badge) {
-                    badge.style.display = 'none';
+                if (checkbox) {
+                    checkbox.checked = false;
+                    
+                    // Hide the indicator badge
+                    const badge = document.getElementById('volume-indicator');
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Update the chart
+                    if (typeof window.updateChart === 'function') {
+                        window.updateChart();
+                    }
                 }
-                
-                // Update the chart
-                updateChart();
             } else {
                 // Call original function for other indicators
                 originalRemoveIndicator.call(this, indicator);
             }
         };
+        console.log('removeIndicator function overridden for Volume support');
     }
 
-    // Add Volume settings support to existing openIndicatorSettings function
+    // Override the openIndicatorSettings function to support Volume
     if (typeof window.openIndicatorSettings === 'function') {
         const originalOpenIndicatorSettings = window.openIndicatorSettings;
         window.openIndicatorSettings = function(indicator) {
+            console.log('Opening settings for:', indicator);
             if (indicator === 'volume') {
                 // Populate Volume settings
-                if (typeof indicatorSettings !== 'undefined' && indicatorSettings.volume) {
-                    document.getElementById('volume-ma-period').value = indicatorSettings.volume.maPeriod;
-                    document.getElementById('volume-up-color').value = indicatorSettings.volume.upColor;
-                    document.getElementById('volume-down-color').value = indicatorSettings.volume.downColor;
-                    document.getElementById('volume-ma-color').value = indicatorSettings.volume.maColor;
-                    document.getElementById('volume-scale').value = indicatorSettings.volume.scaleFactor;
-                    document.getElementById('volume-show-ma').checked = indicatorSettings.volume.showMA;
+                if (typeof window.indicatorSettings !== 'undefined' && window.indicatorSettings.volume) {
+                    const volumeSettings = window.indicatorSettings.volume;
+                    document.getElementById('volume-ma-period').value = volumeSettings.maPeriod;
+                    document.getElementById('volume-up-color').value = volumeSettings.upColor;
+                    document.getElementById('volume-down-color').value = volumeSettings.downColor;
+                    document.getElementById('volume-ma-color').value = volumeSettings.maColor;
+                    document.getElementById('volume-scale').value = volumeSettings.scaleFactor;
+                    document.getElementById('volume-show-ma').checked = volumeSettings.showMA;
                 }
                 
                 const modal = new bootstrap.Modal(document.getElementById('volumeSettingsModal'));
@@ -186,8 +226,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 originalOpenIndicatorSettings.call(this, indicator);
             }
         };
+        console.log('openIndicatorSettings function overridden for Volume support');
     }
-});
+
+    console.log('Volume and Shape features initialized successfully!');
+}
 
 // Shape Drawing Functions
 function addShapeToChart(x, y) {

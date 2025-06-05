@@ -1,2 +1,13 @@
 Mock fundamental data loaded successfully
 Server running at http://localhost:3000
+Fetching historical data for AAPL
+[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/node-yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `yahooFinance.suppressNotices(['ripHistorical'])`.
+Got 501 historical data points for AAPL
+API request for fundamental data: AAPL
+Getting fundamental data for AAPL...
+Using mock fundamental data for AAPL
+Successfully returned fundamental data for AAPL
+API request for fundamental data: AAPL
+Getting fundamental data for AAPL...
+Using mock fundamental data for AAPL
+Successfully returned fundamental data for AAPL

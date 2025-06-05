@@ -1033,19 +1033,36 @@ function drawLineChart(validData, chartDiv, theme, data) {
     try {
         stockChart = new Chart(ctx, config);
         
-        // Add drag event listeners directly to canvas
+        // 简化事件监听器，避免与平移功能冲突
         if (stockChart && stockChart.canvas) {
-            stockChart.canvas.addEventListener('mousedown', handleMouseDown);
-            stockChart.canvas.addEventListener('mousemove', handleMouseMove);
-            stockChart.canvas.addEventListener('mouseup', handleMouseUp);
-            stockChart.canvas.addEventListener('click', (event) => {
-                handleChartClick(event, [], ctx);
-            });
-            stockChart.canvas.addEventListener('mouseleave', () => {
-                if (isDragging) {
-                    finalizeDrag();
+            // 只在特定模式下才添加自定义事件监听器
+            const addCustomListeners = () => {
+                if (drawMode || signalMode || noteMode || tpSlMode || isDragging) {
+                    stockChart.canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
+                    stockChart.canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
+                    stockChart.canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
                 }
-            });
+            };
+            
+            // 监听模式变化
+            let lastModeState = false;
+            const checkModeChange = () => {
+                const currentModeState = drawMode || signalMode || noteMode || tpSlMode || isDragging;
+                if (currentModeState !== lastModeState) {
+                    if (currentModeState) {
+                        addCustomListeners();
+                    } else {
+                        // 移除自定义监听器以恢复平移功能
+                        stockChart.canvas.removeEventListener('mousedown', handleMouseDown);
+                        stockChart.canvas.removeEventListener('mousemove', handleMouseMove);
+                        stockChart.canvas.removeEventListener('mouseup', handleMouseUp);
+                    }
+                    lastModeState = currentModeState;
+                }
+                requestAnimationFrame(checkModeChange);
+            };
+            
+            checkModeChange();
         }
         
         // Store note data on chart for hover functionality
@@ -3130,9 +3147,9 @@ function addPredictionLinesToChart(predictions, dates, lastPrice) {
     const lastDate = dates[dates.length - 1];
     const timeInterval = dates.length > 1 ? dates[dates.length - 1] - dates[dates.length - 2] : 86400000; // 1 day fallback
     
-    // Calculate future date for prediction endpoint (30 days forward)
-    const predictionDays = 30;
-    const futureDate = new Date(lastDate.getTime() + timeInterval * predictionDays);
+    // Calculate future date for prediction endpoint (只预测5个时间节点)
+    const predictionPeriods = 5;
+    const futureDate = new Date(lastDate.getTime() + timeInterval * predictionPeriods);
     
     console.log('Last date:', lastDate, 'Future date:', futureDate, 'Last price:', lastPrice);
     
@@ -3181,7 +3198,7 @@ function addPredictionLinesToChart(predictions, dates, lastPrice) {
                 padding: 6,
                 cornerRadius: 4,
                 xAdjust: 15,
-                yAdjust: index * 30 - 45 // Stagger labels vertically
+                yAdjust: index * 25 - 35 // 减少标签之间的间距
             }
         };
         
@@ -3193,12 +3210,14 @@ function addPredictionLinesToChart(predictions, dates, lastPrice) {
             backgroundColor: style.color,
             borderColor: '#ffffff',
             borderWidth: 2,
-            radius: 8
+            radius: 6
         };
         
-        // Add horizontal price level line
+        // Add horizontal price level line (shorter)
         annotations[`prediction_${predictionType}_level`] = {
             type: 'line',
+            xMin: lastDate,
+            xMax: futureDate,
             yMin: targetPrice,
             yMax: targetPrice,
             borderColor: style.color,
@@ -3217,29 +3236,11 @@ function addPredictionLinesToChart(predictions, dates, lastPrice) {
             }
         };
         
-        // Add intermediate prediction points for visualization
-        const intermediateSteps = 5;
-        for (let i = 1; i <= intermediateSteps; i++) {
-            const stepRatio = i / (intermediateSteps + 1);
-            const intermediateDate = new Date(lastDate.getTime() + timeInterval * predictionDays * stepRatio);
-            const intermediatePrice = lastPrice + (targetPrice - lastPrice) * stepRatio;
-            
-            annotations[`prediction_${predictionType}_step_${i}`] = {
-                type: 'point',
-                xValue: intermediateDate,
-                yValue: intermediatePrice,
-                backgroundColor: style.color + '60', // Semi-transparent
-                borderColor: 'transparent',
-                borderWidth: 0,
-                radius: 4
-            };
-        }
-        
         linesAdded++;
     });
     
-    // Add vertical line to mark start of predictions
-    const futureStartDate = new Date(lastDate.getTime() + timeInterval);
+    // Add vertical line to mark start of predictions (shorter)
+    const futureStartDate = new Date(lastDate.getTime() + timeInterval * 0.5);
     annotations['future_indicator'] = {
         type: 'line',
         xMin: futureStartDate,
@@ -3249,14 +3250,14 @@ function addPredictionLinesToChart(predictions, dates, lastPrice) {
         borderDash: [6, 6],
         label: {
             enabled: true,
-            content: 'Future Predictions →',
+            content: '5-Period Predictions →',
             position: 'start',
             backgroundColor: '#94a3b8',
             color: '#ffffff',
-            font: { size: 12, weight: 'bold' },
+            font: { size: 11, weight: 'bold' },
             padding: 6,
             cornerRadius: 4,
-            yAdjust: -30
+            yAdjust: -25
         }
     };
     
@@ -3264,7 +3265,7 @@ function addPredictionLinesToChart(predictions, dates, lastPrice) {
     stockChart.update('none');
     
     if (linesAdded > 0) {
-        showInfo(`${linesAdded} price prediction lines added to chart`);
+        showInfo(`${linesAdded} price prediction lines added (5-period forecast)`);
         console.log(`Successfully added ${linesAdded} prediction lines`);
     } else {
         showError('Failed to add prediction lines - invalid prediction data');
@@ -3671,20 +3672,36 @@ function drawCandlestickChart(validData, chartDiv, theme) {
         // Store candlestick data for hover functionality
         stockChart.candlestickData = candlestickData;
         
-        // Add drag event listeners
+        // 简化事件监听器，避免与平移功能冲突
         if (stockChart && stockChart.canvas) {
-            stockChart.canvas.addEventListener('mousedown', handleMouseDown);
-            stockChart.canvas.addEventListener('mousemove', handleMouseMove);
-            stockChart.canvas.addEventListener('mouseup', handleMouseUp);
-            stockChart.canvas.addEventListener('click', (event) => {
-                handleChartClick(event, [], ctx);
-            });
-            stockChart.canvas.addEventListener('mouseleave', () => {
-                if (isDragging) {
-                    finalizeDrag();
+            // 只在特定模式下才添加自定义事件监听器
+            const addCustomListeners = () => {
+                if (drawMode || signalMode || noteMode || tpSlMode || isDragging) {
+                    stockChart.canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
+                    stockChart.canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
+                    stockChart.canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
                 }
-                hideCandleTooltip();
-            });
+            };
+            
+            // 监听模式变化
+            let lastModeState = false;
+            const checkModeChange = () => {
+                const currentModeState = drawMode || signalMode || noteMode || tpSlMode || isDragging;
+                if (currentModeState !== lastModeState) {
+                    if (currentModeState) {
+                        addCustomListeners();
+                    } else {
+                        // 移除自定义监听器以恢复平移功能
+                        stockChart.canvas.removeEventListener('mousedown', handleMouseDown);
+                        stockChart.canvas.removeEventListener('mousemove', handleMouseMove);
+                        stockChart.canvas.removeEventListener('mouseup', handleMouseUp);
+                    }
+                    lastModeState = currentModeState;
+                }
+                requestAnimationFrame(checkModeChange);
+            };
+            
+            checkModeChange();
         }
         
         // Store note data
@@ -3862,12 +3879,17 @@ function getChartOptions(theme, ctx) {
 function handleMouseDown(event) {
     if (!stockChart || drawMode || signalMode || noteMode || tpSlMode) return;
     
+    // 检查是否按住了Ctrl键，如果没有，优先启用平移功能
+    if (!event.ctrlKey) {
+        // 不干扰正常的平移功能
+        return;
+    }
+    
     const canvasPosition = Chart.helpers.getRelativePosition(event, stockChart);
     const draggedAnnotation = findAnnotationAtPosition(canvasPosition);
     
-    // Only enable dragging if we specifically clicked on an annotation
-    // This allows normal pan functionality when clicking on empty chart areas
-    if (draggedAnnotation && event.ctrlKey) { // Require Ctrl key for annotation dragging
+    // 只有在按住Ctrl键且点击了注释时才启用拖拽
+    if (draggedAnnotation && event.ctrlKey) {
         isDragging = true;
         dragTarget = draggedAnnotation;
         dragStartPosition = {
@@ -3875,12 +3897,12 @@ function handleMouseDown(event) {
             y: stockChart.scales.y.getValueForPixel(canvasPosition.y)
         };
         
-        // Temporarily disable pan when dragging annotations
+        // 暂时禁用平移以便拖拽注释
         if (stockChart.options.plugins.zoom.pan) {
             stockChart.options.plugins.zoom.pan.enabled = false;
         }
         
-        // Change cursor to indicate dragging
+        // 更改光标表示拖拽状态
         stockChart.canvas.style.cursor = 'grabbing';
         event.preventDefault();
         event.stopPropagation();
@@ -3955,7 +3977,7 @@ function handleDragHover(event) {
         stockChart.canvas.title = `${elementType} - Ctrl+Click to drag, Delete key to remove`;
     } else {
         stockChart.canvas.style.cursor = 'default';
-        stockChart.canvas.title = 'Stock Chart - Scroll to zoom, drag to pan';
+        stockChart.canvas.title = 'Stock Chart - Drag to pan chart, Mouse wheel to zoom, Ctrl+Click annotations to drag';
     }
 }
 

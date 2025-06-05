@@ -174,6 +174,65 @@ class TechnicalIndicators {
             volumes: bins
         };
     }
+
+    // Volume Moving Average
+    static calculateVolumeMA(volumes, period = 20) {
+        if (!volumes || volumes.length === 0) return [];
+        
+        const result = new Array(volumes.length).fill(null);
+        
+        for (let i = period - 1; i < volumes.length; i++) {
+            let sum = 0;
+            for (let j = i - period + 1; j <= i; j++) {
+                sum += volumes[j] || 0;
+            }
+            result[i] = sum / period;
+        }
+        
+        return result;
+    }
+
+    // On Balance Volume (OBV)
+    static calculateOBV(prices, volumes) {
+        if (!prices || !volumes || prices.length !== volumes.length) return [];
+        
+        const obv = new Array(prices.length).fill(0);
+        obv[0] = volumes[0] || 0;
+        
+        for (let i = 1; i < prices.length; i++) {
+            const currentPrice = prices[i];
+            const previousPrice = prices[i - 1];
+            const currentVolume = volumes[i] || 0;
+            
+            if (currentPrice > previousPrice) {
+                obv[i] = obv[i - 1] + currentVolume;
+            } else if (currentPrice < previousPrice) {
+                obv[i] = obv[i - 1] - currentVolume;
+            } else {
+                obv[i] = obv[i - 1];
+            }
+        }
+        
+        return obv;
+    }
+
+    // Volume Rate of Change
+    static calculateVROC(volumes, period = 14) {
+        if (!volumes || volumes.length < period + 1) return [];
+        
+        const result = new Array(volumes.length).fill(null);
+        
+        for (let i = period; i < volumes.length; i++) {
+            const currentVolume = volumes[i] || 0;
+            const pastVolume = volumes[i - period] || 0;
+            
+            if (pastVolume !== 0) {
+                result[i] = ((currentVolume - pastVolume) / pastVolume) * 100;
+            }
+        }
+        
+        return result;
+    }
 }
 
 export default TechnicalIndicators; 

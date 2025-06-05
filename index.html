@@ -79,6 +79,7 @@
                                     <option value="sma">SMA</option>
                                     <option value="rsi">RSI</option>
                                     <option value="macd">MACD</option>
+                                    <option value="volume">Volume</option>
                                 </select>
                                         <button id="add-indicator-btn" class="btn btn-sm btn-primary">
                                             <i class="fas fa-plus"></i>
@@ -99,6 +100,11 @@
                                     <span>MACD</span>
                                             <button class="settings-indicator" data-indicator="macd" title="MACD Settings">⚙️</button>
                                             <button class="remove-indicator" data-indicator="macd">×</button>
+                                        </div>
+                                        <div id="volume-indicator" class="indicator-badge-small" style="display: none;">
+                                    <span>Volume</span>
+                                            <button class="settings-indicator" data-indicator="volume" title="Volume Settings">⚙️</button>
+                                            <button class="remove-indicator" data-indicator="volume">×</button>
                                         </div>
                                     </div>
                                 </div>
@@ -187,6 +193,65 @@
                                     <button class="btn btn-outline-info btn-sm" id="add-note-btn">
                                         <i class="fas fa-sticky-note me-1"></i>Note
                                     </button>
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" id="shape-options" data-bs-toggle="dropdown">
+                                            <i class="fas fa-shapes me-1"></i>Shape
+                                        </button>
+                                        <div class="dropdown-menu p-3" style="min-width: 280px;">
+                                            <h6 class="dropdown-header">
+                                                <i class="fas fa-shapes me-2"></i>Shape Tools
+                                            </h6>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <label for="shape-type" class="form-label small mb-1">Shape</label>
+                                                    <select class="form-select form-select-sm" id="shape-type">
+                                                        <option value="rectangle">Rectangle</option>
+                                                        <option value="circle">Circle</option>
+                                                        <option value="arrow">Arrow</option>
+                                                        <option value="triangle">Triangle</option>
+                                                        <option value="diamond">Diamond</option>
+                                                        <option value="star">Star</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6">
+                                                    <label for="shape-color" class="form-label small mb-1">Color</label>
+                                                    <input type="color" class="form-control form-control-sm" id="shape-color" value="#3b82f6">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <label for="shape-size" class="form-label small mb-1">Size</label>
+                                                    <select class="form-select form-select-sm" id="shape-size">
+                                                        <option value="20">Small</option>
+                                                        <option value="30" selected>Medium</option>
+                                                        <option value="40">Large</option>
+                                                        <option value="50">X-Large</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-6">
+                                                    <label for="shape-opacity" class="form-label small mb-1">Opacity</label>
+                                                    <select class="form-select form-select-sm" id="shape-opacity">
+                                                        <option value="0.3">30%</option>
+                                                        <option value="0.5">50%</option>
+                                                        <option value="0.7" selected>70%</option>
+                                                        <option value="1.0">100%</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="shape-label" class="form-label small">Label (optional)</label>
+                                                <input type="text" class="form-control form-control-sm" id="shape-label" placeholder="e.g., Support Level">
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary btn-sm" id="add-shape-btn">
+                                                    <i class="fas fa-plus me-1"></i>Add Shape
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" id="clear-shapes-btn">
+                                                    <i class="fas fa-eraser me-1"></i>Clear Shapes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -262,6 +327,7 @@
                             <input class="form-check-input" type="checkbox" id="sma-checkbox">
                             <input class="form-check-input" type="checkbox" id="rsi-checkbox">
                             <input class="form-check-input" type="checkbox" id="macd-checkbox">
+                            <input class="form-check-input" type="checkbox" id="volume-checkbox">
                         </div>
                     </div>
 
@@ -624,12 +690,67 @@
         </div>
     </div>
 
+    <!-- Volume Settings Modal -->
+    <div class="modal fade" id="volumeSettingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Volume Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="volume-ma-period" class="form-label">Volume MA Period</label>
+                        <input type="number" class="form-control" id="volume-ma-period" min="5" max="50" value="20">
+                    </div>
+                    <div class="mb-3">
+                        <label for="volume-up-color" class="form-label">Up Volume Color</label>
+                        <input type="color" class="form-control form-control-color" id="volume-up-color" value="#22c55e">
+                    </div>
+                    <div class="mb-3">
+                        <label for="volume-down-color" class="form-label">Down Volume Color</label>
+                        <input type="color" class="form-control form-control-color" id="volume-down-color" value="#ef4444">
+                    </div>
+                    <div class="mb-3">
+                        <label for="volume-ma-color" class="form-label">Volume MA Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="volume-ma-color" value="#3b82f6">
+                    </div>
+                    <div class="mb-3">
+                        <label for="volume-scale" class="form-label">Volume Chart Scale</label>
+                        <select class="form-select" id="volume-scale">
+                            <option value="0.2">20% Height</option>
+                            <option value="0.3" selected>30% Height</option>
+                            <option value="0.4">40% Height</option>
+                            <option value="0.5">50% Height</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="volume-show-ma" checked>
+                            <label class="form-check-label" for="volume-show-ma">
+                                Show Volume Moving Average
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-volume-settings">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Font Awesome Free CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
-    <!-- Custom JS -->
+    <!-- Custom Scripts -->
+    <script type="module" src="config.js"></script>
+    <script type="module" src="utils/indicators.js"></script>
+    <script type="module" src="utils/prediction.js"></script>
     <script type="module" src="script.js"></script>
+    <script src="volume-shapes-patch.js"></script>
     <script>
     // 自动根据URL参数搜索
     window.addEventListener('DOMContentLoaded', function() {

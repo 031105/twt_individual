@@ -36,6 +36,14 @@ const INDICATORS_CONFIG = {
             SIGNAL: '#FF9800',
             HISTOGRAM: '#4CAF50'
         }
+    },
+    VOLUME: {
+        COLOR_UP: '#22c55e',
+        COLOR_DOWN: '#ef4444',
+        COLOR_NEUTRAL: '#6b7280',
+        MOVING_AVERAGE_PERIOD: 20,
+        MA_COLOR: '#3b82f6',
+        SCALE_FACTOR: 0.3 // Volume chart height relative to price chart
     }
 };
 

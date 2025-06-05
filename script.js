@@ -18,6 +18,14 @@ let tvChart = null;
 let currentTimeframe = '1mo';
 let currentStockData = null;
 let predictionChart = null;
+let shapeMode = false;
+let shapeSettings = {
+    type: 'rectangle',
+    color: '#3b82f6',
+    size: 30,
+    opacity: 0.7,
+    label: ''
+};
 
 // Line drawing settings
 let lineSettings = {
@@ -31,7 +39,8 @@ let chartAnnotations = {
     lines: [],
     signals: [],
     notes: [],
-    tpsl: []
+    tpsl: [],
+    shapes: []
 };
 
 // Persistent storage functions
@@ -138,6 +147,14 @@ let indicatorSettings = {
         histogramColor: INDICATORS_CONFIG.MACD.COLORS.HISTOGRAM,
         lineWidth: 2,
         lineStyle: 'solid'
+    },
+    volume: {
+        maPeriod: INDICATORS_CONFIG.VOLUME.MOVING_AVERAGE_PERIOD,
+        upColor: INDICATORS_CONFIG.VOLUME.COLOR_UP,
+        downColor: INDICATORS_CONFIG.VOLUME.COLOR_DOWN,
+        maColor: INDICATORS_CONFIG.VOLUME.MA_COLOR,
+        scaleFactor: INDICATORS_CONFIG.VOLUME.SCALE_FACTOR,
+        showMA: true
     }
 };
 
@@ -1247,6 +1264,102 @@ function addIntegratedIndicators(datasets, scales, validData, theme) {
             }
         } catch (error) {
             console.error('Error calculating MACD:', error);
+        }
+    }
+    
+    // Volume
+    if (document.getElementById('volume-checkbox').checked) {
+        try {
+            const volumes = validData.map(d => d.volume || 0);
+            const volumeData = dates.map((date, index) => ({
+                x: date,
+                y: volumes[index]
+            })).filter(d => d.y !== null && !isNaN(d.y));
+            
+            if (volumeData.length > 0) {
+                // Add volume bars with color based on price movement
+                const volumeColorData = validData.map((d, index) => {
+                    let color = indicatorSettings.volume.upColor;
+                    if (index > 0) {
+                        const prevClose = validData[index - 1].close;
+                        if (d.close < prevClose) {
+                            color = indicatorSettings.volume.downColor;
+                        }
+                    }
+                    return {
+                        x: new Date(d.date),
+                        y: d.volume || 0,
+                        color: color
+                    };
+                });
+                
+                datasets.push({
+                    label: 'Volume',
+                    data: volumeColorData,
+                    backgroundColor: (context) => {
+                        return context.raw ? context.raw.color + '80' : indicatorSettings.volume.upColor + '80';
+                    },
+                    borderColor: (context) => {
+                        return context.raw ? context.raw.color : indicatorSettings.volume.upColor;
+                    },
+                    borderWidth: 1,
+                    type: 'bar',
+                    barPercentage: 0.8,
+                    categoryPercentage: 0.9,
+                    order: 4,
+                    yAxisID: 'y3'
+                });
+                
+                // Add volume moving average if enabled
+                if (indicatorSettings.volume.showMA) {
+                    const volumeMA = TechnicalIndicators.calculateVolumeMA(volumes, indicatorSettings.volume.maPeriod);
+                    const volumeMAData = dates.map((date, index) => ({
+                        x: date,
+                        y: volumeMA[index]
+                    })).filter(d => d.y !== null && !isNaN(d.y));
+                    
+                    if (volumeMAData.length > 0) {
+                        datasets.push({
+                            label: `Volume MA (${indicatorSettings.volume.maPeriod})`,
+                            data: volumeMAData,
+                            borderColor: indicatorSettings.volume.maColor,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            order: 3,
+                            tension: 0.1,
+                            yAxisID: 'y3'
+                        });
+                    }
+                }
+                
+                // Add volume scale
+                scales.y3 = {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    grid: {
+                        drawOnChartArea: false,
+                        color: theme.gridColor
+                    },
+                    ticks: {
+                        color: theme.textColor,
+                        callback: function(value) {
+                            if (value >= 1000000000) {
+                                return (value / 1000000000).toFixed(1) + 'B';
+                            } else if (value >= 1000000) {
+                                return (value / 1000000).toFixed(1) + 'M';
+                            } else if (value >= 1000) {
+                                return (value / 1000).toFixed(1) + 'K';
+                            }
+                            return value.toString();
+                        }
+                    }
+                };
+            }
+        } catch (error) {
+            console.error('Error calculating Volume:', error);
         }
     }
 }
@@ -2840,6 +2953,30 @@ function setupIndicatorSettings() {
             }
             
             showInfo('MACD settings updated successfully!');
+        });
+    }
+    
+    // Volume Settings
+    const saveVolumeBtn = document.getElementById('save-volume-settings');
+    
+    if (saveVolumeBtn) {
+        saveVolumeBtn.addEventListener('click', () => {
+            indicatorSettings.volume.maPeriod = parseInt(document.getElementById('volume-ma-period').value);
+            indicatorSettings.volume.upColor = document.getElementById('volume-up-color').value;
+            indicatorSettings.volume.downColor = document.getElementById('volume-down-color').value;
+            indicatorSettings.volume.maColor = document.getElementById('volume-ma-color').value;
+            indicatorSettings.volume.scaleFactor = parseFloat(document.getElementById('volume-scale').value);
+            indicatorSettings.volume.showMA = document.getElementById('volume-show-ma').checked;
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('volumeSettingsModal'));
+            modal.hide();
+            
+            // Update chart if Volume is active
+            if (document.getElementById('volume-checkbox').checked) {
+                updateChart();
+            }
+            
+            showInfo('Volume settings updated successfully!');
         });
     }
 }

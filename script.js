@@ -928,11 +928,11 @@ function drawLineChart(validData, chartDiv, theme, data) {
                 handleChartClick(event, elements, ctx);
             },
             onHover: (event, elements) => {
+                // 只在特定模式下处理悬停事件
                 if (drawMode && drawingStartPoint) {
                     handleChartMouseMove(event);
                 }
-                handleNoteHover(event, elements);
-                handleDragHover(event);
+                // 简化悬停处理，不干扰平移
                 showCrosshair(event);
             },
             onLeave: () => {
@@ -958,35 +958,18 @@ function drawLineChart(validData, chartDiv, theme, data) {
                     zoom: {
                         wheel: {
                             enabled: true,
-                            speed: 0.05,
-                            modifierKey: null
+                            speed: 0.1
                         },
                         pinch: {
-                            enabled: true,
-                            scale: 0.1
+                            enabled: true
                         },
-                        mode: 'xy', // Allow both x and y zoom
-                        onZoomComplete: function(chart) {
-                            console.log('Zoom completed on both axes');
-                        }
+                        mode: 'xy'
                     },
                     pan: {
                         enabled: true,
-                        mode: 'xy', // Allow both x and y pan
-                        threshold: 5,
-                        rangeMin: {
-                            x: null,
-                            y: null
-                        },
-                        rangeMax: {
-                            x: null,
-                            y: null
-                        },
-                        onPanComplete: function(chart) {
-                            console.log('Pan completed on both axes');
-                        }
+                        mode: 'xy',
+                        threshold: 10
                     }
-                    // Remove limits to allow unrestricted scrolling and panning
                 },
                 tooltip: {
                     mode: 'index',
@@ -1033,36 +1016,27 @@ function drawLineChart(validData, chartDiv, theme, data) {
     try {
         stockChart = new Chart(ctx, config);
         
-        // 简化事件监听器，避免与平移功能冲突
+        // 简化事件处理 - 让Chart.js的内置功能工作
         if (stockChart && stockChart.canvas) {
-            // 只在特定模式下才添加自定义事件监听器
-            const addCustomListeners = () => {
-                if (drawMode || signalMode || noteMode || tpSlMode || isDragging) {
-                    stockChart.canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
-                    stockChart.canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
-                    stockChart.canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
-                }
-            };
+            // 只添加必要的点击事件处理
+            stockChart.canvas.addEventListener('click', (event) => {
+                handleChartClick(event, [], ctx);
+            });
             
-            // 监听模式变化
-            let lastModeState = false;
-            const checkModeChange = () => {
-                const currentModeState = drawMode || signalMode || noteMode || tpSlMode || isDragging;
-                if (currentModeState !== lastModeState) {
-                    if (currentModeState) {
-                        addCustomListeners();
-                    } else {
-                        // 移除自定义监听器以恢复平移功能
-                        stockChart.canvas.removeEventListener('mousedown', handleMouseDown);
-                        stockChart.canvas.removeEventListener('mousemove', handleMouseMove);
-                        stockChart.canvas.removeEventListener('mouseup', handleMouseUp);
-                    }
-                    lastModeState = currentModeState;
+            // 鼠标离开时清理
+            stockChart.canvas.addEventListener('mouseleave', () => {
+                hideCrosshair();
+                hideNotePopup();
+                hideSignalPopup();
+                hideCandleTooltip();
+                if (isDragging) {
+                    finalizeDrag();
                 }
-                requestAnimationFrame(checkModeChange);
-            };
+            });
             
-            checkModeChange();
+            // 设置默认光标和提示
+            stockChart.canvas.style.cursor = 'grab';
+            stockChart.canvas.title = 'Drag to pan chart, Mouse wheel to zoom, Click tools then chart to add annotations';
         }
         
         // Store note data on chart for hover functionality
@@ -2879,15 +2853,40 @@ function toggleChartType() {
         candlestickBtn.classList.add('active');
     }
     
+    // Store current predictions before redrawing chart
+    let currentPredictions = null;
+    if (stockChart && stockChart.options.plugins.annotation) {
+        const annotations = stockChart.options.plugins.annotation.annotations;
+        const hasPredictions = Object.keys(annotations).some(key => key.startsWith('prediction_'));
+        if (hasPredictions) {
+            // Extract prediction data from current annotations
+            currentPredictions = extractPredictionData(annotations);
+            console.log('Stored predictions for chart type switch:', currentPredictions);
+        }
+    }
+    
     // Redraw chart with new type
     if (currentStockData) {
         drawChart(currentStockData);
+        
+        // Restore predictions after chart is redrawn
+        if (currentPredictions) {
+            setTimeout(() => {
+                restorePredictionLines(currentPredictions);
+                showInfo(`Chart type switched to ${chartType}. Predictions restored.`);
+            }, 200);
+        }
     }
 }
 
 // Chart click handler
 function handleChartClick(event, elements, ctx) {
     if (!stockChart) return;
+    
+    // 只在特定模式下处理点击事件
+    if (!drawMode && !signalMode && !noteMode && !tpSlMode) {
+        return; // 正常模式下不处理点击，让平移功能工作
+    }
     
     const canvasPosition = Chart.helpers.getRelativePosition(event, stockChart);
     const dataX = stockChart.scales.x.getValueForPixel(canvasPosition.x);
@@ -2954,28 +2953,6 @@ function handleChartClick(event, elements, ctx) {
     if (tpSlMode) {
         handleTpSlClick(dataX, dataY);
         return;
-    }
-    
-    // Handle annotation selection (when not in any special mode)
-    const clickedAnnotation = findAnnotationAtPosition(canvasPosition);
-    if (clickedAnnotation) {
-        let annotationType = 'element';
-        
-        // Determine annotation type for better user feedback
-        if (clickedAnnotation.id.startsWith('note')) {
-            annotationType = 'note';
-        } else if (clickedAnnotation.id.startsWith('signal_')) {
-            annotationType = 'signal';
-        } else if (clickedAnnotation.id.startsWith('tpsl_') || clickedAnnotation.type === 'tpsl_group') {
-            annotationType = 'tpsl_group';
-        } else if (clickedAnnotation.id.startsWith('trendLine')) {
-            annotationType = 'line';
-        }
-        
-        selectAnnotation(clickedAnnotation.id, annotationType);
-    } else {
-        // Click on empty area - deselect
-        deselectAnnotation();
     }
 }
 
@@ -3594,11 +3571,11 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                     handleChartClick(event, elements, ctx);
                 },
                 onHover: (event, elements) => {
+                    // 只在特定模式下处理悬停事件
                     if (drawMode && drawingStartPoint) {
                         handleChartMouseMove(event);
                     }
-                    handleNoteHover(event, elements);
-                    handleDragHover(event); // Add custom candle hover
+                    // 简化悬停处理，不干扰平移
                     showCrosshair(event);
                 },
                 onLeave: () => {
@@ -3615,35 +3592,41 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                         zoom: {
                             wheel: {
                                 enabled: true,
-                                speed: 0.05,
-                                modifierKey: null
+                                speed: 0.1
                             },
                             pinch: {
-                                enabled: true,
-                                scale: 0.1
+                                enabled: true
                             },
-                            mode: 'xy', // Allow both x and y zoom
-                            onZoomComplete: function(chart) {
-                                console.log('Zoom completed on both axes');
-                            }
+                            mode: 'xy'
                         },
                         pan: {
                             enabled: true,
-                            mode: 'xy', // Allow both x and y pan
-                            threshold: 5,
-                            rangeMin: {
-                                x: null,
-                                y: null
+                            mode: 'xy',
+                            threshold: 10
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].raw.displayDate || new Date(context[0].parsed.x).toLocaleDateString();
                             },
-                            rangeMax: {
-                                x: null,
-                                y: null
-                            },
-                            onPanComplete: function(chart) {
-                                console.log('Pan completed on both axes');
+                            label: function(context) {
+                                const label = context.dataset.label;
+                                const value = context.parsed.y;
+                                
+                                if (label.includes('Price')) {
+                                    return `${label}: $${value.toFixed(2)}`;
+                                } else if (label.includes('RSI')) {
+                                    return `${label}: ${value.toFixed(2)}`;
+                                } else if (label.includes('MACD') || label.includes('Signal') || label.includes('Histogram')) {
+                                    return `${label}: ${value.toFixed(4)}`;
+                                } else {
+                                    return `${label}: $${value.toFixed(2)}`;
+                                }
                             }
                         }
-                        // Remove limits to allow unrestricted scrolling and panning
                     },
                     legend: {
                         display: true,
@@ -3654,9 +3637,6 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                                 return !legendItem.text.includes('Close Price');
                             }
                         }
-                    },
-                    tooltip: {
-                        enabled: false, // Disable default tooltip, use custom candle tooltip
                     },
                     annotation: {
                         annotations: candleAnnotations
@@ -3672,36 +3652,27 @@ function drawCandlestickChart(validData, chartDiv, theme) {
         // Store candlestick data for hover functionality
         stockChart.candlestickData = candlestickData;
         
-        // 简化事件监听器，避免与平移功能冲突
+        // 简化事件处理 - 让Chart.js的内置功能工作
         if (stockChart && stockChart.canvas) {
-            // 只在特定模式下才添加自定义事件监听器
-            const addCustomListeners = () => {
-                if (drawMode || signalMode || noteMode || tpSlMode || isDragging) {
-                    stockChart.canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
-                    stockChart.canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
-                    stockChart.canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
-                }
-            };
+            // 只添加必要的点击事件处理
+            stockChart.canvas.addEventListener('click', (event) => {
+                handleChartClick(event, [], ctx);
+            });
             
-            // 监听模式变化
-            let lastModeState = false;
-            const checkModeChange = () => {
-                const currentModeState = drawMode || signalMode || noteMode || tpSlMode || isDragging;
-                if (currentModeState !== lastModeState) {
-                    if (currentModeState) {
-                        addCustomListeners();
-                    } else {
-                        // 移除自定义监听器以恢复平移功能
-                        stockChart.canvas.removeEventListener('mousedown', handleMouseDown);
-                        stockChart.canvas.removeEventListener('mousemove', handleMouseMove);
-                        stockChart.canvas.removeEventListener('mouseup', handleMouseUp);
-                    }
-                    lastModeState = currentModeState;
+            // 鼠标离开时清理
+            stockChart.canvas.addEventListener('mouseleave', () => {
+                hideCrosshair();
+                hideNotePopup();
+                hideSignalPopup();
+                hideCandleTooltip();
+                if (isDragging) {
+                    finalizeDrag();
                 }
-                requestAnimationFrame(checkModeChange);
-            };
+            });
             
-            checkModeChange();
+            // 设置默认光标和提示
+            stockChart.canvas.style.cursor = 'grab';
+            stockChart.canvas.title = 'Drag to pan chart, Mouse wheel to zoom, Click tools then chart to add annotations';
         }
         
         // Store note data
@@ -3847,11 +3818,11 @@ function getChartOptions(theme, ctx) {
             handleChartClick(event, elements, ctx);
         },
         onHover: (event, elements) => {
+            // 只在特定模式下处理悬停事件
             if (drawMode && drawingStartPoint) {
                 handleChartMouseMove(event);
             }
-            handleNoteHover(event, elements);
-            handleDragHover(event);
+            // 简化悬停处理，不干扰平移
             showCrosshair(event);
         },
         onLeave: () => {
@@ -3875,21 +3846,15 @@ function getChartOptions(theme, ctx) {
     };
 }
 
-// Handle mouse down for dragging
+// Handle mouse down for dragging - simplified to not interfere with pan
 function handleMouseDown(event) {
-    if (!stockChart || drawMode || signalMode || noteMode || tpSlMode) return;
-    
-    // 检查是否按住了Ctrl键，如果没有，优先启用平移功能
-    if (!event.ctrlKey) {
-        // 不干扰正常的平移功能
-        return;
-    }
+    // 只在特定注释拖拽模式下才处理
+    if (!stockChart || !event.ctrlKey) return;
     
     const canvasPosition = Chart.helpers.getRelativePosition(event, stockChart);
     const draggedAnnotation = findAnnotationAtPosition(canvasPosition);
     
-    // 只有在按住Ctrl键且点击了注释时才启用拖拽
-    if (draggedAnnotation && event.ctrlKey) {
+    if (draggedAnnotation) {
         isDragging = true;
         dragTarget = draggedAnnotation;
         dragStartPosition = {
@@ -3897,12 +3862,6 @@ function handleMouseDown(event) {
             y: stockChart.scales.y.getValueForPixel(canvasPosition.y)
         };
         
-        // 暂时禁用平移以便拖拽注释
-        if (stockChart.options.plugins.zoom.pan) {
-            stockChart.options.plugins.zoom.pan.enabled = false;
-        }
-        
-        // 更改光标表示拖拽状态
         stockChart.canvas.style.cursor = 'grabbing';
         event.preventDefault();
         event.stopPropagation();
@@ -3911,7 +3870,7 @@ function handleMouseDown(event) {
     }
 }
 
-// Handle mouse move for dragging
+// Handle mouse move for dragging - simplified
 function handleMouseMove(event) {
     if (!isDragging || !dragTarget) return;
     
@@ -3921,24 +3880,16 @@ function handleMouseMove(event) {
         y: stockChart.scales.y.getValueForPixel(canvasPosition.y)
     };
     
-    // Update annotation position
     updateAnnotationPosition(dragTarget, currentPosition);
     stockChart.update('none');
     
     event.preventDefault();
 }
 
-// Handle mouse up for dragging
+// Handle mouse up for dragging - simplified
 function handleMouseUp(event) {
     if (isDragging && dragTarget) {
-        // Finalize the drag operation
         finalizeDrag();
-        
-        // Re-enable pan functionality after annotation dragging
-        if (stockChart.options.plugins.zoom.pan) {
-            stockChart.options.plugins.zoom.pan.enabled = true;
-        }
-        
         console.log('Annotation drag completed');
     }
 }
@@ -4593,4 +4544,33 @@ function hideCandleTooltip() {
     if (tooltip) {
         tooltip.style.display = 'none';
     }
+}
+
+// Extract prediction data from annotations
+function extractPredictionData(annotations) {
+    const predictions = {};
+    
+    // Extract prediction values from line annotations
+    Object.keys(annotations).forEach(key => {
+        if (key.includes('prediction_') && key.includes('_line')) {
+            const predictionType = key.replace('prediction_', '').replace('_line', '');
+            const annotation = annotations[key];
+            if (annotation && annotation.yMax !== undefined) {
+                predictions[predictionType] = annotation.yMax;
+            }
+        }
+    });
+    
+    return Object.keys(predictions).length > 0 ? predictions : null;
+}
+
+// Restore prediction lines with extracted data
+function restorePredictionLines(predictions) {
+    if (!predictions || !currentStockData) return;
+    
+    const dates = currentStockData.historicalData.map(d => new Date(d.date));
+    const lastPrice = currentStockData.historicalData[currentStockData.historicalData.length - 1].close;
+    
+    console.log('Restoring predictions:', predictions);
+    addPredictionLinesToChart(predictions, dates, lastPrice);
 }

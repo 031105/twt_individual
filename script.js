@@ -928,11 +928,13 @@ function drawLineChart(validData, chartDiv, theme, data) {
                 handleChartClick(event, elements, ctx);
             },
             onHover: (event, elements) => {
-                // 只在特定模式下处理悬停事件
+                // 处理绘图模式的悬停
                 if (drawMode && drawingStartPoint) {
                     handleChartMouseMove(event);
                 }
-                // 简化悬停处理，不干扰平移
+                // 处理注释悬停和拖拽提示
+                handleNoteHover(event, elements);
+                handleDragHover(event);
                 showCrosshair(event);
             },
             onLeave: () => {
@@ -1016,9 +1018,12 @@ function drawLineChart(validData, chartDiv, theme, data) {
     try {
         stockChart = new Chart(ctx, config);
         
-        // 简化事件处理 - 让Chart.js的内置功能工作
+        // 添加事件监听器以支持注释拖拽和图表交互
         if (stockChart && stockChart.canvas) {
-            // 只添加必要的点击事件处理
+            // 添加所有必要的事件监听器
+            stockChart.canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
+            stockChart.canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
+            stockChart.canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
             stockChart.canvas.addEventListener('click', (event) => {
                 handleChartClick(event, [], ctx);
             });
@@ -1028,7 +1033,6 @@ function drawLineChart(validData, chartDiv, theme, data) {
                 hideCrosshair();
                 hideNotePopup();
                 hideSignalPopup();
-                hideCandleTooltip();
                 if (isDragging) {
                     finalizeDrag();
                 }
@@ -1036,7 +1040,7 @@ function drawLineChart(validData, chartDiv, theme, data) {
             
             // 设置默认光标和提示
             stockChart.canvas.style.cursor = 'grab';
-            stockChart.canvas.title = 'Drag to pan chart, Mouse wheel to zoom, Click tools then chart to add annotations';
+            stockChart.canvas.title = 'Drag to pan chart, Mouse wheel to zoom, Ctrl+Click annotations to move them';
         }
         
         // Store note data on chart for hover functionality
@@ -3571,11 +3575,13 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                     handleChartClick(event, elements, ctx);
                 },
                 onHover: (event, elements) => {
-                    // 只在特定模式下处理悬停事件
+                    // 处理绘图模式的悬停
                     if (drawMode && drawingStartPoint) {
                         handleChartMouseMove(event);
                     }
-                    // 简化悬停处理，不干扰平移
+                    // 处理注释悬停和拖拽提示
+                    handleNoteHover(event, elements);
+                    handleDragHover(event);
                     showCrosshair(event);
                 },
                 onLeave: () => {
@@ -3652,9 +3658,12 @@ function drawCandlestickChart(validData, chartDiv, theme) {
         // Store candlestick data for hover functionality
         stockChart.candlestickData = candlestickData;
         
-        // 简化事件处理 - 让Chart.js的内置功能工作
+        // 添加事件监听器以支持注释拖拽和图表交互
         if (stockChart && stockChart.canvas) {
-            // 只添加必要的点击事件处理
+            // 添加所有必要的事件监听器
+            stockChart.canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
+            stockChart.canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
+            stockChart.canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
             stockChart.canvas.addEventListener('click', (event) => {
                 handleChartClick(event, [], ctx);
             });
@@ -3664,7 +3673,6 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                 hideCrosshair();
                 hideNotePopup();
                 hideSignalPopup();
-                hideCandleTooltip();
                 if (isDragging) {
                     finalizeDrag();
                 }
@@ -3672,7 +3680,7 @@ function drawCandlestickChart(validData, chartDiv, theme) {
             
             // 设置默认光标和提示
             stockChart.canvas.style.cursor = 'grab';
-            stockChart.canvas.title = 'Drag to pan chart, Mouse wheel to zoom, Click tools then chart to add annotations';
+            stockChart.canvas.title = 'Drag to pan chart, Mouse wheel to zoom, Ctrl+Click annotations to move them';
         }
         
         // Store note data
@@ -3846,15 +3854,16 @@ function getChartOptions(theme, ctx) {
     };
 }
 
-// Handle mouse down for dragging - simplified to not interfere with pan
+// Handle mouse down for dragging - improved annotation dragging support
 function handleMouseDown(event) {
-    // 只在特定注释拖拽模式下才处理
-    if (!stockChart || !event.ctrlKey) return;
+    if (!stockChart) return;
     
     const canvasPosition = Chart.helpers.getRelativePosition(event, stockChart);
     const draggedAnnotation = findAnnotationAtPosition(canvasPosition);
     
+    // 检查是否点击了注释元素
     if (draggedAnnotation) {
+        // 如果点击了注释，启用拖拽模式
         isDragging = true;
         dragTarget = draggedAnnotation;
         dragStartPosition = {
@@ -3862,12 +3871,22 @@ function handleMouseDown(event) {
             y: stockChart.scales.y.getValueForPixel(canvasPosition.y)
         };
         
+        // 暂时禁用平移以避免冲突
+        if (stockChart.options.plugins.zoom && stockChart.options.plugins.zoom.pan) {
+            stockChart.options.plugins.zoom.pan.enabled = false;
+        }
+        
         stockChart.canvas.style.cursor = 'grabbing';
         event.preventDefault();
         event.stopPropagation();
         
         console.log('Annotation drag started:', draggedAnnotation.id);
+        showInfo('Dragging annotation. Release to place.');
+        return;
     }
+    
+    // 如果没有点击注释，让Chart.js处理平移
+    // 不阻止事件，让内置pan功能工作
 }
 
 // Handle mouse move for dragging - simplified
@@ -3886,11 +3905,21 @@ function handleMouseMove(event) {
     event.preventDefault();
 }
 
-// Handle mouse up for dragging - simplified
+// Handle mouse up for dragging - re-enable pan after annotation drag
 function handleMouseUp(event) {
     if (isDragging && dragTarget) {
         finalizeDrag();
+        
+        // 重新启用平移功能
+        if (stockChart.options.plugins.zoom && stockChart.options.plugins.zoom.pan) {
+            stockChart.options.plugins.zoom.pan.enabled = true;
+        }
+        
+        // 恢复光标
+        stockChart.canvas.style.cursor = 'grab';
+        
         console.log('Annotation drag completed');
+        showInfo('Annotation moved successfully!');
     }
 }
 
@@ -3925,10 +3954,10 @@ function handleDragHover(event) {
         }
         
         // Update canvas title for accessibility
-        stockChart.canvas.title = `${elementType} - Ctrl+Click to drag, Delete key to remove`;
+        stockChart.canvas.title = `${elementType} - Click and drag to move, Delete key to remove`;
     } else {
-        stockChart.canvas.style.cursor = 'default';
-        stockChart.canvas.title = 'Stock Chart - Drag to pan chart, Mouse wheel to zoom, Ctrl+Click annotations to drag';
+        stockChart.canvas.style.cursor = 'grab';
+        stockChart.canvas.title = 'Stock Chart - Drag to pan chart, Mouse wheel to zoom, Click annotations to move them';
     }
 }
 
@@ -3938,30 +3967,74 @@ function findAnnotationAtPosition(canvasPosition) {
     
     const annotations = stockChart.options.plugins.annotation.annotations;
     
-    // First check for individual TPSL lines (for range adjustment)
+    // Increased tolerance for easier selection
+    const tolerance = 20;
+    
+    // Check for point annotations (notes, signals, etc.)
     for (const annotationId in annotations) {
         const annotation = annotations[annotationId];
         
         // Skip candle annotations - they should not be draggable
         if (annotationId.startsWith('candle_')) continue;
         
-        if (annotation.type === 'line' && (annotationId.includes('_tp') || annotationId.includes('_sl') || annotationId.includes('_entry'))) {
-            const pixelY = stockChart.scales.y.getPixelForValue(annotation.yMin);
+        if (annotation.type === 'point') {
+            const pixelX = stockChart.scales.x.getPixelForValue(annotation.xValue);
+            const pixelY = stockChart.scales.y.getPixelForValue(annotation.yValue);
             
-            if (Math.abs(canvasPosition.y - pixelY) <= 15) { // Increased tolerance for easier selection
-                return { id: annotationId, annotation: annotation, type: 'tpsl_line' };
+            const distance = Math.sqrt(
+                Math.pow(canvasPosition.x - pixelX, 2) + 
+                Math.pow(canvasPosition.y - pixelY, 2)
+            );
+            
+            if (distance <= (annotation.radius || 10) + tolerance) {
+                return { id: annotationId, annotation: annotation, type: 'point' };
             }
         }
     }
     
-    // Then check for TPSL boxes (for moving entire setup)
+    // Check for line annotations (trend lines, TP/SL lines)
     for (const annotationId in annotations) {
         const annotation = annotations[annotationId];
         
         // Skip candle annotations
         if (annotationId.startsWith('candle_')) continue;
         
-        if (annotation.type === 'box' && (annotationId.includes('_tp_zone') || annotationId.includes('_sl_zone'))) {
+        if (annotation.type === 'line') {
+            // Check if clicking near the line
+            const x1 = stockChart.scales.x.getPixelForValue(annotation.xMin);
+            const y1 = stockChart.scales.y.getPixelForValue(annotation.yMin);
+            const x2 = stockChart.scales.x.getPixelForValue(annotation.xMax);
+            const y2 = stockChart.scales.y.getPixelForValue(annotation.yMax);
+            
+            // Calculate distance from point to line
+            const lineLength = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            if (lineLength === 0) continue;
+            
+            const t = Math.max(0, Math.min(1, ((canvasPosition.x - x1) * (x2 - x1) + (canvasPosition.y - y1) * (y2 - y1)) / (lineLength * lineLength)));
+            const projectionX = x1 + t * (x2 - x1);
+            const projectionY = y1 + t * (y2 - y1);
+            
+            const distanceToLine = Math.sqrt(Math.pow(canvasPosition.x - projectionX, 2) + Math.pow(canvasPosition.y - projectionY, 2));
+            
+            if (distanceToLine <= tolerance) {
+                // Determine line type for better handling
+                if (annotationId.includes('_tp') || annotationId.includes('_sl') || annotationId.includes('_entry')) {
+                    return { id: annotationId, annotation: annotation, type: 'tpsl_line' };
+                } else {
+                    return { id: annotationId, annotation: annotation, type: 'line' };
+                }
+            }
+        }
+    }
+    
+    // Check for box annotations (TP/SL zones)
+    for (const annotationId in annotations) {
+        const annotation = annotations[annotationId];
+        
+        // Skip candle annotations
+        if (annotationId.startsWith('candle_')) continue;
+        
+        if (annotation.type === 'box') {
             const minPixelX = stockChart.scales.x.getPixelForValue(annotation.xMin);
             const maxPixelX = stockChart.scales.x.getPixelForValue(annotation.xMax);
             const minPixelY = stockChart.scales.y.getPixelForValue(annotation.yMax);
@@ -3976,45 +4049,26 @@ function findAnnotationAtPosition(canvasPosition) {
         }
     }
     
-    // Then check for other elements
+    // Check for label annotations
     for (const annotationId in annotations) {
         const annotation = annotations[annotationId];
         
         // Skip candle annotations
         if (annotationId.startsWith('candle_')) continue;
         
-        if (annotation.type === 'point') {
+        if (annotation.type === 'label') {
             const pixelX = stockChart.scales.x.getPixelForValue(annotation.xValue);
             const pixelY = stockChart.scales.y.getPixelForValue(annotation.yValue);
             
-            const distance = Math.sqrt(
-                Math.pow(canvasPosition.x - pixelX, 2) + 
-                Math.pow(canvasPosition.y - pixelY, 2)
-            );
-            
-            if (distance <= (annotation.radius || 10) + 5) {
-                return { id: annotationId, annotation: annotation, type: 'point' };
-            }
-        } else if (annotation.type === 'label') {
-            const pixelX = stockChart.scales.x.getPixelForValue(annotation.xValue);
-            const pixelY = stockChart.scales.y.getPixelForValue(annotation.yValue);
-            
-            // Approximate label bounds (simplified)
-            const labelWidth = 60; // Approximate
-            const labelHeight = 20; // Approximate
+            // Approximate label bounds (increased for easier selection)
+            const labelWidth = 80;
+            const labelHeight = 30;
             
             if (canvasPosition.x >= pixelX - labelWidth/2 && 
                 canvasPosition.x <= pixelX + labelWidth/2 &&
-                canvasPosition.y >= pixelY - labelHeight - 30 && 
-                canvasPosition.y <= pixelY - 10) {
+                canvasPosition.y >= pixelY - labelHeight - 40 && 
+                canvasPosition.y <= pixelY - 5) {
                 return { id: annotationId, annotation: annotation, type: 'label' };
-            }
-        } else if (annotation.type === 'line' && !annotationId.includes('_tp') && !annotationId.includes('_sl') && !annotationId.includes('_entry')) {
-            // Only allow line dragging for non-TPSL lines (like trend lines)
-            const pixelY = stockChart.scales.y.getPixelForValue(annotation.yMin);
-            
-            if (Math.abs(canvasPosition.y - pixelY) <= 10) {
-                return { id: annotationId, annotation: annotation, type: 'line' };
             }
         }
     }

@@ -958,20 +958,35 @@ function drawLineChart(validData, chartDiv, theme, data) {
                     zoom: {
                         wheel: {
                             enabled: true,
-                            speed: 0.03,
+                            speed: 0.05,
                             modifierKey: null
                         },
                         pinch: {
-                            enabled: true
+                            enabled: true,
+                            scale: 0.1
                         },
-                        mode: 'xy' // Allow both x and y zoom
+                        mode: 'xy', // Allow both x and y zoom
+                        onZoomComplete: function(chart) {
+                            console.log('Zoom completed on both axes');
+                        }
                     },
                     pan: {
                         enabled: true,
                         mode: 'xy', // Allow both x and y pan
-                        threshold: 3
+                        threshold: 5,
+                        rangeMin: {
+                            x: null,
+                            y: null
+                        },
+                        rangeMax: {
+                            x: null,
+                            y: null
+                        },
+                        onPanComplete: function(chart) {
+                            console.log('Pan completed on both axes');
+                        }
                     }
-                    // Remove limits to allow unrestricted scrolling
+                    // Remove limits to allow unrestricted scrolling and panning
                 },
                 tooltip: {
                     mode: 'index',
@@ -3065,7 +3080,11 @@ function calculatePrediction(data) {
             console.log('Fallback predictions calculated:', predictions); // Debug
             
             displayPredictionResults(predictions, data.currentPrice || lastPrice);
-            addPredictionLinesToChart(predictions, dates, lastPrice);
+            
+            // Ensure prediction lines are added to chart
+            setTimeout(() => {
+                addPredictionLinesToChart(predictions, dates, lastPrice);
+            }, 100);
             return;
         }
         
@@ -3073,7 +3092,11 @@ function calculatePrediction(data) {
         console.log('Advanced predictions calculated:', predictions); // Debug
         
         displayPredictionResults(predictions, data.currentPrice || prices[prices.length - 1]);
-        addPredictionLinesToChart(predictions, dates, prices[prices.length - 1]);
+        
+        // Ensure prediction lines are added to chart with slight delay
+        setTimeout(() => {
+            addPredictionLinesToChart(predictions, dates, prices[prices.length - 1]);
+        }, 100);
         
     } catch (error) {
         console.error('Error calculating predictions:', error);
@@ -3088,129 +3111,165 @@ function calculatePrediction(data) {
 
 // Add prediction lines to chart
 function addPredictionLinesToChart(predictions, dates, lastPrice) {
-    if (!stockChart || !stockChart.options.plugins.annotation) return;
+    if (!stockChart || !stockChart.options.plugins.annotation) {
+        console.error('Chart or annotation plugin not available');
+        return;
+    }
     
-    console.log('Adding prediction lines to chart...', predictions); // Debug log
+    console.log('Adding prediction lines to chart...', predictions);
     
     // Remove existing prediction lines
     const annotations = stockChart.options.plugins.annotation.annotations;
     Object.keys(annotations).forEach(key => {
-        if (key.startsWith('prediction_')) {
+        if (key.startsWith('prediction_') || key === 'future_indicator') {
             delete annotations[key];
         }
     });
     
-    // Get the last date and calculate future dates
+    // Get the last date and calculate future date for predictions
     const lastDate = dates[dates.length - 1];
     const timeInterval = dates.length > 1 ? dates[dates.length - 1] - dates[dates.length - 2] : 86400000; // 1 day fallback
     
-    console.log('Last date:', lastDate, 'Time interval:', timeInterval); // Debug log
+    // Calculate future date for prediction endpoint (30 days forward)
+    const predictionDays = 30;
+    const futureDate = new Date(lastDate.getTime() + timeInterval * predictionDays);
     
-    // Create future prediction points (extend into the future)
-    const predictionSteps = 10; // Increased steps for better visibility
-    const predictionColors = {
-        linear: '#3b82f6',      // Blue
-        movingAverage: '#10b981', // Green
-        exponential: '#f59e0b',   // Yellow
-        combined: '#ef4444'       // Red
+    console.log('Last date:', lastDate, 'Future date:', futureDate, 'Last price:', lastPrice);
+    
+    // Prediction colors and styles
+    const predictionStyles = {
+        linear: { color: '#3b82f6', name: 'Linear Trend', dash: [10, 5] },
+        movingAverage: { color: '#10b981', name: 'Moving Average', dash: [15, 3] },
+        exponential: { color: '#f59e0b', name: 'Exponential', dash: [5, 10] },
+        combined: { color: '#ef4444', name: 'Combined', dash: [8, 8] }
     };
     
     let linesAdded = 0;
     
+    // Add prediction lines for each model
     Object.entries(predictions).forEach(([predictionType, targetPrice], index) => {
-        if (!targetPrice || isNaN(targetPrice)) return;
+        if (!targetPrice || isNaN(targetPrice) || targetPrice <= 0) {
+            console.warn(`Invalid prediction for ${predictionType}:`, targetPrice);
+            return;
+        }
         
-        // Create prediction line from current price to predicted price
-        const futureDate = new Date(lastDate.getTime() + timeInterval * predictionSteps);
+        const style = predictionStyles[predictionType];
+        if (!style) {
+            console.warn(`No style defined for prediction type: ${predictionType}`);
+            return;
+        }
         
-        console.log(`Adding ${predictionType} prediction line from ${lastPrice} to ${targetPrice}`); // Debug log
+        console.log(`Adding ${predictionType} prediction line: ${lastPrice} -> ${targetPrice}`);
         
-        // Add prediction line
+        // Add main prediction line from current price to predicted price
         annotations[`prediction_${predictionType}_line`] = {
             type: 'line',
             xMin: lastDate,
             xMax: futureDate,
             yMin: lastPrice,
             yMax: targetPrice,
-            borderColor: predictionColors[predictionType] || '#6b7280',
-            borderWidth: 2,
-            borderDash: [8, 4], // Dotted line
+            borderColor: style.color,
+            borderWidth: 3,
+            borderDash: style.dash,
             label: {
                 enabled: true,
-                content: `${predictionType.charAt(0).toUpperCase() + predictionType.slice(1)}: $${targetPrice.toFixed(2)}`,
+                content: `${style.name}: $${targetPrice.toFixed(2)}`,
                 position: 'end',
-                backgroundColor: predictionColors[predictionType] || '#6b7280',
+                backgroundColor: style.color,
+                color: '#ffffff',
+                font: { size: 11, weight: 'bold' },
+                padding: 6,
+                cornerRadius: 4,
+                xAdjust: 15,
+                yAdjust: index * 30 - 45 // Stagger labels vertically
+            }
+        };
+        
+        // Add prediction endpoint marker
+        annotations[`prediction_${predictionType}_endpoint`] = {
+            type: 'point',
+            xValue: futureDate,
+            yValue: targetPrice,
+            backgroundColor: style.color,
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            radius: 8
+        };
+        
+        // Add horizontal price level line
+        annotations[`prediction_${predictionType}_level`] = {
+            type: 'line',
+            yMin: targetPrice,
+            yMax: targetPrice,
+            borderColor: style.color,
+            borderWidth: 1,
+            borderDash: [3, 3],
+            label: {
+                enabled: true,
+                content: `$${targetPrice.toFixed(2)}`,
+                position: 'start',
+                backgroundColor: style.color,
                 color: '#ffffff',
                 font: { size: 10, weight: 'bold' },
                 padding: 4,
                 cornerRadius: 3,
-                xAdjust: 10,
-                yAdjust: index * 25 - 40 // Better label spacing
+                xAdjust: -10
             }
         };
         
-        // Add prediction endpoint
-        annotations[`prediction_${predictionType}_point`] = {
-            type: 'point',
-            xValue: futureDate,
-            yValue: targetPrice,
-            backgroundColor: predictionColors[predictionType] || '#6b7280',
-            borderColor: '#ffffff',
-            borderWidth: 2,
-            radius: 6
-        };
-        
-        // Add intermediate points for better visualization
-        const stepSize = predictionSteps / 5;
-        for (let i = 1; i <= 4; i++) {
-            const intermediateDate = new Date(lastDate.getTime() + timeInterval * stepSize * i);
-            const intermediatePrice = lastPrice + (targetPrice - lastPrice) * (i / 5);
+        // Add intermediate prediction points for visualization
+        const intermediateSteps = 5;
+        for (let i = 1; i <= intermediateSteps; i++) {
+            const stepRatio = i / (intermediateSteps + 1);
+            const intermediateDate = new Date(lastDate.getTime() + timeInterval * predictionDays * stepRatio);
+            const intermediatePrice = lastPrice + (targetPrice - lastPrice) * stepRatio;
             
             annotations[`prediction_${predictionType}_step_${i}`] = {
                 type: 'point',
                 xValue: intermediateDate,
                 yValue: intermediatePrice,
-                backgroundColor: predictionColors[predictionType] + '80', // Semi-transparent
+                backgroundColor: style.color + '60', // Semi-transparent
                 borderColor: 'transparent',
                 borderWidth: 0,
-                radius: 3
+                radius: 4
             };
         }
         
         linesAdded++;
     });
     
-    // Add future data indication
+    // Add vertical line to mark start of predictions
     const futureStartDate = new Date(lastDate.getTime() + timeInterval);
     annotations['future_indicator'] = {
         type: 'line',
         xMin: futureStartDate,
         xMax: futureStartDate,
-        borderColor: '#fbbf24',
+        borderColor: '#94a3b8',
         borderWidth: 2,
-        borderDash: [4, 4],
+        borderDash: [6, 6],
         label: {
             enabled: true,
             content: 'Future Predictions →',
             position: 'start',
-            backgroundColor: '#fbbf24',
-            color: '#000000',
+            backgroundColor: '#94a3b8',
+            color: '#ffffff',
             font: { size: 12, weight: 'bold' },
             padding: 6,
             cornerRadius: 4,
-            yAdjust: -20
+            yAdjust: -30
         }
     };
     
+    // Update chart
     stockChart.update('none');
     
     if (linesAdded > 0) {
         showInfo(`${linesAdded} price prediction lines added to chart`);
+        console.log(`Successfully added ${linesAdded} prediction lines`);
     } else {
         showError('Failed to add prediction lines - invalid prediction data');
+        console.error('No valid prediction data to display');
     }
-    
-    console.log('Prediction lines added:', linesAdded); // Debug log
 }
 
 // Clear prediction lines from chart
@@ -3538,8 +3597,7 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                         handleChartMouseMove(event);
                     }
                     handleNoteHover(event, elements);
-                    handleDragHover(event);
-                    handleCandleHover(event); // Add custom candle hover
+                    handleDragHover(event); // Add custom candle hover
                     showCrosshair(event);
                 },
                 onLeave: () => {
@@ -3556,19 +3614,35 @@ function drawCandlestickChart(validData, chartDiv, theme) {
                         zoom: {
                             wheel: {
                                 enabled: true,
-                                speed: 0.03,
+                                speed: 0.05,
                                 modifierKey: null
                             },
                             pinch: {
-                                enabled: true
+                                enabled: true,
+                                scale: 0.1
                             },
-                            mode: 'xy'
+                            mode: 'xy', // Allow both x and y zoom
+                            onZoomComplete: function(chart) {
+                                console.log('Zoom completed on both axes');
+                            }
                         },
                         pan: {
                             enabled: true,
-                            mode: 'xy',
-                            threshold: 3
+                            mode: 'xy', // Allow both x and y pan
+                            threshold: 5,
+                            rangeMin: {
+                                x: null,
+                                y: null
+                            },
+                            rangeMax: {
+                                x: null,
+                                y: null
+                            },
+                            onPanComplete: function(chart) {
+                                console.log('Pan completed on both axes');
+                            }
                         }
+                        // Remove limits to allow unrestricted scrolling and panning
                     },
                     legend: {
                         display: true,
@@ -3791,7 +3865,9 @@ function handleMouseDown(event) {
     const canvasPosition = Chart.helpers.getRelativePosition(event, stockChart);
     const draggedAnnotation = findAnnotationAtPosition(canvasPosition);
     
-    if (draggedAnnotation) {
+    // Only enable dragging if we specifically clicked on an annotation
+    // This allows normal pan functionality when clicking on empty chart areas
+    if (draggedAnnotation && event.ctrlKey) { // Require Ctrl key for annotation dragging
         isDragging = true;
         dragTarget = draggedAnnotation;
         dragStartPosition = {
@@ -3799,9 +3875,17 @@ function handleMouseDown(event) {
             y: stockChart.scales.y.getValueForPixel(canvasPosition.y)
         };
         
+        // Temporarily disable pan when dragging annotations
+        if (stockChart.options.plugins.zoom.pan) {
+            stockChart.options.plugins.zoom.pan.enabled = false;
+        }
+        
         // Change cursor to indicate dragging
         stockChart.canvas.style.cursor = 'grabbing';
         event.preventDefault();
+        event.stopPropagation();
+        
+        console.log('Annotation drag started:', draggedAnnotation.id);
     }
 }
 
@@ -3825,7 +3909,15 @@ function handleMouseMove(event) {
 // Handle mouse up for dragging
 function handleMouseUp(event) {
     if (isDragging && dragTarget) {
+        // Finalize the drag operation
         finalizeDrag();
+        
+        // Re-enable pan functionality after annotation dragging
+        if (stockChart.options.plugins.zoom.pan) {
+            stockChart.options.plugins.zoom.pan.enabled = true;
+        }
+        
+        console.log('Annotation drag completed');
     }
 }
 
@@ -3860,7 +3952,7 @@ function handleDragHover(event) {
         }
         
         // Update canvas title for accessibility
-        stockChart.canvas.title = `${elementType} - Click to select, drag to move, Delete key to remove`;
+        stockChart.canvas.title = `${elementType} - Ctrl+Click to drag, Delete key to remove`;
     } else {
         stockChart.canvas.style.cursor = 'default';
         stockChart.canvas.title = 'Stock Chart - Scroll to zoom, drag to pan';

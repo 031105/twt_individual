@@ -58,29 +58,35 @@ const CHART_CONFIG = {
         zoom: {
             wheel: {
                 enabled: true,
-                speed: 0.03, // Much lower speed for better control
+                speed: 0.05, // Slightly increased speed for better control
                 modifierKey: null
             },
             pinch: {
-                enabled: true
+                enabled: true,
+                scale: 0.1 // Sensitivity for pinch gestures
             },
-            mode: 'x',
+            mode: 'xy', // Allow zoom on both x and y axes
             onZoomComplete: function(chart) {
                 console.log('Zoom completed');
             }
         },
         pan: {
             enabled: true,
-            mode: 'x',
-            threshold: 3, // Lower threshold for easier pan activation
+            mode: 'xy', // Allow pan on both x and y axes
+            threshold: 5, // Slightly higher threshold for stable pan activation
+            rangeMin: {
+                x: null, // Remove range limits for x
+                y: null  // Remove range limits for y
+            },
+            rangeMax: {
+                x: null, // Remove range limits for x
+                y: null  // Remove range limits for y
+            },
             onPanComplete: function(chart) {
                 console.log('Pan completed');
             }
-        },
-        limits: {
-            x: {min: 'original', max: 'original'},
-            y: {min: 'original', max: 'original'}
         }
+        // Removed limits to allow unrestricted panning and zooming
     }
 };
 

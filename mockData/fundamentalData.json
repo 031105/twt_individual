@@ -1,0 +1,394 @@
+{
+  "AAPL": {
+    "company_info": {
+      "name": "Apple Inc.",
+      "sector": "Technology",
+      "industry": "Consumer Electronics",
+      "country": "United States",
+      "website": "https://www.apple.com",
+      "description": "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. The company offers iPhone, iPad, Mac, Apple Watch, and services such as AppleCare, iCloud, Apple Pay, and licenses.",
+      "market_cap": 2823000000000,
+      "pe_ratio": 28.7,
+      "pb_ratio": 15.3,
+      "dividend_yield": 0.0053,
+      "beta": 1.28
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 394328000000,
+        "gross_profit": 170782000000,
+        "operating_income": 119437000000,
+        "net_income": 99803000000,
+        "eps": 6.14
+      },
+      "balance_sheet": {
+        "total_assets": 352755000000,
+        "total_liabilities": 290591000000,
+        "total_equity": 62164000000,
+        "current_assets": 143713000000,
+        "current_liabilities": 127503000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 122151000000,
+        "investing_cash_flow": -25128000000,
+        "financing_cash_flow": -110069000000,
+        "free_cash_flow": 90215000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Buy",
+      "from_grade": "Hold",
+      "action": "Upgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0.24,
+      "last_dividend_date": "2024-02-09",
+      "dividend_frequency": "Quarterly"
+    }
+  },
+  "MSFT": {
+    "company_info": {
+      "name": "Microsoft Corporation",
+      "sector": "Technology",
+      "industry": "Software—Infrastructure",
+      "country": "United States",
+      "website": "https://www.microsoft.com",
+      "description": "Microsoft Corporation develops, licenses, and supports software, services, devices, and solutions worldwide. The company operates in three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal Computing.",
+      "market_cap": 3067000000000,
+      "pe_ratio": 35.1,
+      "pb_ratio": 13.7,
+      "dividend_yield": 0.0072,
+      "beta": 0.93
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 211915000000,
+        "gross_profit": 145970000000,
+        "operating_income": 88523000000,
+        "net_income": 72361000000,
+        "eps": 9.71
+      },
+      "balance_sheet": {
+        "total_assets": 404794000000,
+        "total_liabilities": 193159000000,
+        "total_equity": 211635000000,
+        "current_assets": 184406000000,
+        "current_liabilities": 95484000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 89320000000,
+        "investing_cash_flow": -34080000000,
+        "financing_cash_flow": -54431000000,
+        "free_cash_flow": 63333000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Strong Buy",
+      "from_grade": "Buy",
+      "action": "Upgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0.75,
+      "last_dividend_date": "2024-02-14",
+      "dividend_frequency": "Quarterly"
+    }
+  },
+  "GOOGL": {
+    "company_info": {
+      "name": "Alphabet Inc.",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "country": "United States",
+      "website": "https://www.abc.xyz",
+      "description": "Alphabet Inc. offers various products and platforms in the United States, Europe, the Middle East, Africa, the Asia-Pacific, Canada, and Latin America. It operates through Google Services, Google Cloud, and Other Bets segments.",
+      "market_cap": 2040000000000,
+      "pe_ratio": 25.3,
+      "pb_ratio": 6.1,
+      "dividend_yield": 0,
+      "beta": 1.06
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 307394000000,
+        "gross_profit": 173237000000,
+        "operating_income": 84308000000,
+        "net_income": 73795000000,
+        "eps": 5.80
+      },
+      "balance_sheet": {
+        "total_assets": 354793000000,
+        "total_liabilities": 115636000000,
+        "total_equity": 239157000000,
+        "current_assets": 178011000000,
+        "current_liabilities": 66145000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 110526000000,
+        "investing_cash_flow": -33182000000,
+        "financing_cash_flow": -66798000000,
+        "free_cash_flow": 77058000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Strong Buy",
+      "from_grade": "Buy",
+      "action": "Upgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0,
+      "last_dividend_date": "N/A",
+      "dividend_frequency": "None"
+    }
+  },
+  "AMZN": {
+    "company_info": {
+      "name": "Amazon.com Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Internet Retail",
+      "country": "United States",
+      "website": "https://www.amazon.com",
+      "description": "Amazon.com, Inc. engages in the retail sale of consumer products and subscriptions through online and physical stores in North America and internationally. It operates through three segments: North America, International, and Amazon Web Services (AWS).",
+      "market_cap": 1892000000000,
+      "pe_ratio": 47.6,
+      "pb_ratio": 9.2,
+      "dividend_yield": 0,
+      "beta": 1.25
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 574784000000,
+        "gross_profit": 248587000000,
+        "operating_income": 36963000000,
+        "net_income": 30425000000,
+        "eps": 2.95
+      },
+      "balance_sheet": {
+        "total_assets": 501839000000,
+        "total_liabilities": 301048000000,
+        "total_equity": 200791000000,
+        "current_assets": 213955000000,
+        "current_liabilities": 158381000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 86758000000,
+        "investing_cash_flow": -52038000000,
+        "financing_cash_flow": -25046000000,
+        "free_cash_flow": 36996000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Buy",
+      "from_grade": "Buy",
+      "action": "Maintain",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0,
+      "last_dividend_date": "N/A",
+      "dividend_frequency": "None"
+    }
+  },
+  "META": {
+    "company_info": {
+      "name": "Meta Platforms, Inc.",
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information",
+      "country": "United States",
+      "website": "https://about.meta.com",
+      "description": "Meta Platforms, Inc. engages in the development of products that enable people to connect and share with friends and family through mobile devices, personal computers, virtual reality headsets, and wearables worldwide. It operates in two segments, Family of Apps and Reality Labs.",
+      "market_cap": 998765432100,
+      "pe_ratio": 24.2,
+      "pb_ratio": 6.8,
+      "dividend_yield": 0.0049,
+      "beta": 1.37
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 134901000000,
+        "gross_profit": 87432000000,
+        "operating_income": 39098000000,
+        "net_income": 39361000000,
+        "eps": 15.31
+      },
+      "balance_sheet": {
+        "total_assets": 196860000000,
+        "total_liabilities": 48944000000,
+        "total_equity": 147916000000,
+        "current_assets": 78871000000,
+        "current_liabilities": 23595000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 58528000000,
+        "investing_cash_flow": -20878000000,
+        "financing_cash_flow": -41983000000,
+        "free_cash_flow": 35686000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Buy",
+      "from_grade": "Hold",
+      "action": "Upgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0.50,
+      "last_dividend_date": "2024-03-20",
+      "dividend_frequency": "Quarterly"
+    }
+  },
+  "NVDA": {
+    "company_info": {
+      "name": "NVIDIA Corporation",
+      "sector": "Technology",
+      "industry": "Semiconductors",
+      "country": "United States",
+      "website": "https://www.nvidia.com",
+      "description": "NVIDIA Corporation provides graphics, computing, and networking solutions in the United States, Taiwan, China, and internationally. The company operates through Graphics and Compute & Networking segments that focus on AI, data centers, gaming, and professional visualization.",
+      "market_cap": 2234562100000,
+      "pe_ratio": 73.8,
+      "pb_ratio": 48.2,
+      "dividend_yield": 0.0009,
+      "beta": 1.74
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 60920000000,
+        "gross_profit": 41670000000,
+        "operating_income": 29764000000,
+        "net_income": 29760000000,
+        "eps": 12.06
+      },
+      "balance_sheet": {
+        "total_assets": 65180000000,
+        "total_liabilities": 18920000000,
+        "total_equity": 46260000000,
+        "current_assets": 37870000000,
+        "current_liabilities": 10090000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 24190000000,
+        "investing_cash_flow": -8120000000,
+        "financing_cash_flow": -3980000000,
+        "free_cash_flow": 19240000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Strong Buy",
+      "from_grade": "Buy",
+      "action": "Upgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0.04,
+      "last_dividend_date": "2024-03-06",
+      "dividend_frequency": "Quarterly"
+    }
+  },
+  "NFLX": {
+    "company_info": {
+      "name": "Netflix, Inc.",
+      "sector": "Communication Services",
+      "industry": "Entertainment",
+      "country": "United States",
+      "website": "https://www.netflix.com",
+      "description": "Netflix, Inc. provides entertainment services. It offers TV series, documentaries, feature films, and mobile games across various genres and languages. The company provides members the ability to receive streaming content through a host of internet-connected devices.",
+      "market_cap": 261840000000,
+      "pe_ratio": 52.4,
+      "pb_ratio": 10.6,
+      "dividend_yield": 0,
+      "beta": 1.27
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 33720000000,
+        "gross_profit": 14550000000,
+        "operating_income": 6510000000,
+        "net_income": 5120000000,
+        "eps": 11.49
+      },
+      "balance_sheet": {
+        "total_assets": 49240000000,
+        "total_liabilities": 28940000000,
+        "total_equity": 20300000000,
+        "current_assets": 13950000000,
+        "current_liabilities": 9450000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 7780000000,
+        "investing_cash_flow": -1120000000,
+        "financing_cash_flow": -4670000000,
+        "free_cash_flow": 5810000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Buy",
+      "from_grade": "Hold",
+      "action": "Upgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0,
+      "last_dividend_date": "N/A",
+      "dividend_frequency": "None"
+    }
+  },
+  "TSLA": {
+    "company_info": {
+      "name": "Tesla, Inc.",
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "country": "United States",
+      "website": "https://www.tesla.com",
+      "description": "Tesla, Inc. designs, develops, manufactures, leases, and sells electric vehicles, and energy generation and storage systems in the United States, China, and internationally. The company operates in two segments, Automotive, and Energy Generation and Storage.",
+      "market_cap": 603720000000,
+      "pe_ratio": 54.8,
+      "pb_ratio": 12.3,
+      "dividend_yield": 0,
+      "beta": 2.31
+    },
+    "financials": {
+      "income_statement": {
+        "revenue": 96773000000,
+        "gross_profit": 21451000000,
+        "operating_income": 13656000000,
+        "net_income": 14174000000,
+        "eps": 4.29
+      },
+      "balance_sheet": {
+        "total_assets": 121611000000,
+        "total_liabilities": 37784000000,
+        "total_equity": 83827000000,
+        "current_assets": 60075000000,
+        "current_liabilities": 27028000000
+      },
+      "cash_flow": {
+        "operating_cash_flow": 20781000000,
+        "investing_cash_flow": -18283000000,
+        "financing_cash_flow": -4494000000,
+        "free_cash_flow": 7280000000
+      }
+    },
+    "analyst_recommendations": {
+      "firm": "Analyst Consensus",
+      "to_grade": "Hold",
+      "from_grade": "Buy",
+      "action": "Downgrade",
+      "date": "2024-01-19"
+    },
+    "dividends": {
+      "last_dividend": 0,
+      "last_dividend_date": "N/A",
+      "dividend_frequency": "None"
+    }
+  }
+} 

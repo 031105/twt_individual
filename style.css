@@ -1,0 +1,1304 @@
+/* Custom styles for Stock Analysis Web Application */
+
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #64748b;
+    --success-color: #22c55e;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    --light-color: #f8fafc;
+    --dark-color: #0f172a;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --transition: all 0.3s ease;
+}
+
+/* Light theme (default) */
+body.light {
+    --bg-color: #f1f5f9;
+    --text-color: #1e293b;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --grid-color: rgba(0, 0, 0, 0.05);
+    --header-bg: #ffffff;
+    --header-text: #1e293b;
+    --hover-bg: #f8fafc;
+}
+
+/* Dark theme */
+body.dark {
+    --bg-color: #0f172a;
+    --text-color: #f8fafc;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --grid-color: rgba(255, 255, 255, 0.05);
+    --header-bg: #1e293b;
+    --header-text: #f8fafc;
+    --hover-bg: #334155;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: var(--transition);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+}
+
+/* Container adjustments - reduce left/right margins */
+.container, .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    max-width: 95% !important;
+}
+
+/* Modern header */
+header {
+    background-color: var(--header-bg) !important;
+    color: var(--header-text) !important;
+    box-shadow: var(--box-shadow);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+header h1 {
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin: 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    height: 450px;
+    width: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+#stockChart {
+    width: 100%;
+    height: 100%;
+}
+
+/* Search section */
+#search-section {
+    margin-bottom: 2rem;
+}
+
+.input-group {
+    box-shadow: var(--box-shadow);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-control {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Buttons */
+.btn {
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+    text-transform: none;
+    letter-spacing: 0.3px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-outline-primary.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+/* Chart controls */
+.chart-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    background-color: var(--hover-bg);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.technical-indicators {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+}
+
+/* Indicator dropdown and badges */
+.indicator-dropdown {
+    min-width: 120px;
+}
+
+.active-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.indicator-badge {
+    display: flex;
+    align-items: center;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    gap: 0.5rem;
+}
+
+.indicator-badge .remove-indicator {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.75rem;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.indicator-badge .remove-indicator:hover {
+    opacity: 1;
+}
+
+#add-indicator-btn {
+    padding: 0.25rem 0.5rem;
+    height: 32px;
+    width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-check {
+    margin: 0;
+}
+
+.form-check-input {
+    cursor: pointer;
+}
+
+.form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Company Info and Financial Data Layout */
+.info-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1.5rem;
+    padding: 0.75rem;
+}
+
+.info-label {
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: right;
+    padding-right: 0.5rem;
+    border-right: 2px solid var(--border-color);
+    min-width: 120px;
+}
+
+.info-value {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.info-value a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.info-value a:hover {
+    text-decoration: underline;
+}
+
+.description-section {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.description-label {
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.description-content {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+/* Financial sections */
+.financial-section {
+    background-color: var(--hover-bg);
+    padding: 1.25rem;
+    border-radius: var(--border-radius);
+    height: 100%;
+}
+
+.financial-section h6 {
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.financial-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.financial-item:last-child {
+    border-bottom: none;
+}
+
+.financial-label {
+    color: var(--secondary-color);
+    font-size: 0.813rem;
+}
+
+.financial-value {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.875rem;
+    text-align: right;
+}
+
+/* Prediction Section */
+.prediction-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.prediction-item {
+    background-color: var(--hover-bg);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+
+.prediction-label {
+    color: var(--secondary-color);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.prediction-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.confidence {
+    color: var(--success-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Stock Details - Compact horizontal layout */
+#stock-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--hover-bg);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.stock-detail-item {
+    background-color: var(--card-bg);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    min-width: 120px;
+    text-align: center;
+}
+
+.stock-detail-label {
+    font-size: 0.7rem;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.stock-detail-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1;
+}
+
+/* Hide separate indicator charts - we'll integrate them */
+#rsiChart, #macdChart, .indicator-charts {
+    display: none !important;
+}
+
+/* Theme toggle */
+.theme-toggle {
+    background-color: var(--hover-bg);
+    border: none;
+    border-radius: 50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0;
+    color: var(--header-text);
+}
+
+.theme-toggle:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Footer */
+footer {
+    background-color: var(--header-bg) !important;
+    color: var(--header-text) !important;
+    padding: 2rem 0;
+    margin-top: 3rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container, .container-fluid {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .chart-container {
+        height: 350px;
+    }
+    
+    .chart-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #stock-details {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .stock-detail-item {
+        min-width: auto;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stock-detail-label {
+        margin-bottom: 0;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        text-align: left;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.25rem;
+    }
+
+    .financial-section {
+        margin-bottom: 1rem;
+    }
+
+    .prediction-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    background-color: var(--dark-color);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Hot stocks */
+#hot-stocks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.hot-stock-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    background-color: var(--hover-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.hot-stock-btn:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.market-info-container {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    box-shadow: var(--box-shadow);
+    height: 100%;
+}
+
+.market-info-container .section-header {
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.market-info-container .sub-header {
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.market-info-container .info-grid {
+    display: grid;
+    grid-gap: 10px;
+}
+
+.market-info-container .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.market-info-container .info-row:last-child {
+    border-bottom: none;
+}
+
+.market-info-container .label {
+    color: #666;
+    font-weight: 500;
+}
+
+.market-info-container .value {
+    font-weight: 500;
+}
+
+.market-info-container .recommendations-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.market-info-container .dividend-section {
+    padding-top: 15px;
+}
+
+/* Rating badges */
+.market-info-container .rating-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
+/* Dark mode support */
+body.dark .market-info-container {
+    background: #2d2d2d;
+    color: #fff;
+}
+
+body.dark .market-info-container .section-header {
+    color: #fff;
+}
+
+body.dark .market-info-container .sub-header,
+body.dark .market-info-container .label {
+    color: #aaa;
+}
+
+body.dark .market-info-container .info-row {
+    border-bottom-color: #444;
+}
+
+body.dark .market-info-container .recommendations-section {
+    border-bottom-color: #444;
+}
+
+#market-analysis-section .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+}
+
+#market-analysis-section .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#market-info {
+    flex: 1;
+    overflow-y: auto;
+}
+
+#company-info-section .card {
+    height: 100%;
+    margin-bottom: 0;
+}
+
+#company-info-section .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+#company-info {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1.5rem;
+    padding: 0.75rem;
+}
+
+#company-info .info-label {
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: right;
+    padding-right: 0.5rem;
+    border-right: 2px solid var(--border-color);
+    min-width: 120px;
+}
+
+#company-info .info-value {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+#company-info .description-section {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 320px;
+}
+
+#company-info .description-content {
+    max-height: 288px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--hover-bg);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+/* Add a subtle scrollbar for better UX */
+#company-info .description-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+#company-info .description-content::-webkit-scrollbar-track {
+    background: var(--hover-bg);
+    border-radius: 3px;
+}
+
+#company-info .description-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+#company-info .description-content::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* Ensure prediction section doesn't take up too much space */
+#prediction-section .card {
+    margin-bottom: 1rem;
+}
+
+/* Make sure the flex column takes full height */
+.d-flex.flex-column {
+    height: 100%;
+}
+
+/* Reduce gap between Price Prediction and Market Analysis sections */
+#prediction-section {
+    margin-bottom: 0.75rem !important;
+}
+
+#market-analysis-section {
+    margin-top: 0;
+}
+
+/* Fix for duplicate market analysis title */
+#market-info .section-header {
+    display: none;
+}
+
+/* Make the market info content more compact */
+.market-info-container {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    box-shadow: var(--box-shadow);
+    height: 100%;
+}
+
+.market-info-container .recommendations-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.market-info-container .info-row {
+    padding: 6px 0;
+}
+
+/* Adjust other section spacing */
+.info-grid {
+    gap: 0.5rem 1.5rem;
+    padding: 0.75rem;
+}
+
+/* Ensure consistent design across both sections */
+#company-info-section .card,
+#market-analysis-section .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+#company-info-section .card-body,
+#market-analysis-section .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+}
+
+.indicator-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.indicator-charts .chart-container {
+    height: 250px;
+    position: relative;
+}
+
+.indicator-charts canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-header {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: auto;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    z-index: 5;
+    background-color: var(--card-bg);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 200px;
+}
+
+.chart-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#rsi-settings-btn,
+#macd-settings-btn {
+    padding: 0.2rem 0.2rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    opacity: 0.7;
+    transition: var(--transition);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+#rsi-settings-btn:hover,
+#macd-settings-btn:hover {
+    opacity: 1;
+    background-color: var(--hover-bg);
+}
+
+.chart-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--danger-color);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+.modal-footer {
+    border-top-color: var(--border-color);
+}
+
+.form-control {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.form-control:focus {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Line drawing options */
+.dropdown-menu input[type="color"] {
+    height: 30px;
+    padding: 0 2px;
+    cursor: pointer;
+}
+
+.dropdown-menu .form-label {
+    color: var(--secondary-color);
+    margin-bottom: 2px;
+}
+
+.dropdown-header {
+    font-weight: 600;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+}
+
+/* Trend line styles for previewing */
+.line-style-preview {
+    height: 2px;
+    width: 100%;
+    background-color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.line-style-preview.dashed {
+    border-top: 2px dashed var(--primary-color);
+    background-color: transparent;
+    height: 0;
+}
+
+.line-style-preview.dotted {
+    border-top: 2px dotted var(--primary-color);
+    background-color: transparent;
+    height: 0;
+}
+
+/* Compact Chart Controls */
+.chart-controls-compact {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.controls-row-horizontal {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.control-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 150px;
+}
+
+.section-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.control-items {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Indicators Section */
+.indicator-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.indicator-controls select {
+    min-width: 120px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.active-indicators-inline {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.indicator-badge-small {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.indicator-badge-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+}
+
+.indicator-badge-small .remove-indicator {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 2px;
+}
+
+.indicator-badge-small .remove-indicator:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Chart Type & Timeframe */
+.chart-type-buttons {
+    margin-right: 8px;
+}
+
+.chart-type-buttons .btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.chart-type-buttons .btn.active {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-color: #28a745;
+    color: white;
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+#timeframe-select {
+    min-width: 100px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+/* Tools Section */
+.control-section .dropdown-toggle {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.control-section .btn-sm {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+/* View Controls */
+.view-controls-inline {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Dropdown Enhancements */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 15px;
+    background: white;
+    z-index: 1050;
+}
+
+.dropdown-header {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #f8f9fa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Hover Effects */
+.control-section .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.control-section .dropdown-toggle:hover {
+    transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .controls-row-horizontal {
+        gap: 15px;
+    }
+    
+    .control-section {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 992px) {
+    .controls-row-horizontal {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .control-section {
+        min-width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .section-label {
+        min-width: 80px;
+        margin-bottom: 0;
+    }
+    
+    .control-items {
+        flex: 1;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-controls-compact {
+        padding: 12px 15px;
+    }
+    
+    .control-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .control-items {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .indicator-controls {
+        width: 100%;
+    }
+    
+    .indicator-controls select {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .chart-type-buttons {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    #timeframe-select {
+        min-width: auto;
+        flex: 1;
+    }
+}
+
+/* Dark Theme Support */
+.dark .chart-controls-compact {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border-color: #495057;
+}
+
+.dark .section-label {
+    color: #f8f9fa;
+}
+
+.dark .dropdown-menu {
+    background: #343a40;
+    border-color: #495057;
+}
+
+.dark .dropdown-header {
+    color: #f8f9fa;
+    border-bottom-color: #495057;
+}
+
+/* Animation */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chart-controls-compact {
+    animation: slideInUp 0.4s ease-out;
+}
+
+.control-section {
+    animation: slideInUp 0.4s ease-out;
+    animation-delay: calc(var(--i) * 0.05s);
+}
+
+/* Focus States */
+.form-select:focus,
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: 0;
+}
+
+/* Success/Error/Warning States for Indicators */
+.indicator-badge-small.success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.indicator-badge-small.warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.indicator-badge-small.danger {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+} 

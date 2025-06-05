@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Web Application</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- Chart.js Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+    <!-- Chart.js Zoom Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <!-- Chart.js Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <!-- ECharts for candlestick -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <!-- Chart.js Financial Plugin (for candlestick) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@3.0.0/dist/chartjs-chart-financial.min.js"></script>
+    <!-- TradingView Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light">
+    <header>
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1>Stock Analysis</h1>
+            <button class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        </div>
+    </header>
+
+    <main class="container my-4">
+        <!-- Search Section -->
+        <section id="search-section">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" id="stock-symbol" class="form-control" placeholder="Enter stock symbol (e.g., AAPL)">
+                        <button class="btn btn-primary">
+                            <span class="search-text">Search</span>
+                        </button>
+                    </div>
+                    <div id="search-suggestions" class="list-group position-absolute w-100" style="z-index: 10; display: none;"></div>
+                    <div id="hot-stocks" class="mt-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Section -->
+        <section id="chart-section" class="mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Stock Information -->
+                    <div id="stock-details" class="fade-in">
+                        <!-- Stock details will be populated here -->
+                    </div>
+                    
+                    <div class="chart-controls-compact">
+                        <!-- Primary Controls Row -->
+                        <div class="controls-row-horizontal">
+                            <!-- Indicators Section -->
+                            <div class="control-section">
+                                <div class="section-label">
+                                    <i class="fas fa-chart-line text-primary me-1"></i>
+                                    <span>Indicators</span>
+                                </div>
+                                <div class="control-items">
+                                    <div class="indicator-controls">
+                                <select id="indicator-select" class="form-select form-select-sm">
+                                            <option value="">Add Indicator</option>
+                                    <option value="sma">SMA</option>
+                                    <option value="rsi">RSI</option>
+                                    <option value="macd">MACD</option>
+                                </select>
+                                        <button id="add-indicator-btn" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                            </div>
+                                    <div class="active-indicators-inline">
+                                        <div id="sma-indicator" class="indicator-badge-small" style="display: none;">
+                                    <span>SMA</span>
+                                            <button class="settings-indicator" data-indicator="sma" title="SMA Settings">⚙️</button>
+                                            <button class="remove-indicator" data-indicator="sma">×</button>
+                                </div>
+                                        <div id="rsi-indicator" class="indicator-badge-small" style="display: none;">
+                                    <span>RSI</span>
+                                            <button class="settings-indicator" data-indicator="rsi" title="RSI Settings">⚙️</button>
+                                            <button class="remove-indicator" data-indicator="rsi">×</button>
+                                </div>
+                                        <div id="macd-indicator" class="indicator-badge-small" style="display: none;">
+                                    <span>MACD</span>
+                                            <button class="settings-indicator" data-indicator="macd" title="MACD Settings">⚙️</button>
+                                            <button class="remove-indicator" data-indicator="macd">×</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chart Type & Timeframe Section -->
+                            <div class="control-section">
+                                <div class="section-label">
+                                    <i class="fas fa-chart-area text-success me-1"></i>
+                                    <span>Chart</span>
+                                </div>
+                                <div class="control-items">
+                                    <div class="btn-group btn-group-sm chart-type-buttons" role="group">
+                                        <button type="button" class="btn btn-outline-primary active" id="line-chart-btn">
+                                            <i class="fas fa-chart-line me-1"></i>Line
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary" id="candlestick-chart-btn">
+                                            <i class="fas fa-chart-bar me-1"></i>Candle
+                            </button>
+                                    </div>
+                                    <select id="timeframe-select" class="form-select form-select-sm">
+                                        <option value="1w">1 Week</option>
+                                        <option value="1mo" selected>1 Month</option>
+                                    </select>
+                            </div>
+                        </div>
+
+                            <!-- Drawing Tools -->
+                            <div class="control-section">
+                                <div class="section-label">
+                                    <i class="fas fa-pen-fancy text-info me-1"></i>
+                                    <span>Tools</span>
+                        </div>
+                                <div class="control-items">
+                            <div class="dropdown d-inline-block">
+                                        <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" id="draw-line-options" data-bs-toggle="dropdown">
+                                            <i class="fas fa-pen me-1"></i>Line
+                                </button>
+                                        <div class="dropdown-menu p-3" style="min-width: 280px;">
+                                            <h6 class="dropdown-header">
+                                                <i class="fas fa-palette me-2"></i>Line Options
+                                            </h6>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                        <label for="line-color" class="form-label small mb-1">Color</label>
+                                        <input type="color" class="form-control form-control-sm" id="line-color" value="#FF0000">
+                                    </div>
+                                                <div class="col-6">
+                                        <label for="line-width" class="form-label small mb-1">Width</label>
+                                        <select class="form-select form-select-sm" id="line-width">
+                                            <option value="1">Thin</option>
+                                            <option value="2" selected>Medium</option>
+                                            <option value="3">Thick</option>
+                                            <option value="4">Very Thick</option>
+                                        </select>
+                                    </div>
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                        <label for="line-style" class="form-label small mb-1">Style</label>
+                                        <select class="form-select form-select-sm" id="line-style">
+                                            <option value="solid" selected>Solid</option>
+                                            <option value="dashed">Dashed</option>
+                                            <option value="dotted">Dotted</option>
+                                        </select>
+                                    </div>
+                                                <div class="col-6">
+                                                    <label for="line-type" class="form-label small mb-1">Type</label>
+                                                    <select class="form-select form-select-sm" id="line-type">
+                                                        <option value="trend" selected>Trend</option>
+                                                        <option value="support">Support</option>
+                                                        <option value="resistance">Resistance</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary btn-sm" id="draw-line-btn">
+                                                    <i class="fas fa-play me-1"></i>Start Drawing
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" id="clear-lines-btn">
+                                                    <i class="fas fa-eraser me-1"></i>Clear Lines
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-info btn-sm" id="add-note-btn">
+                                        <i class="fas fa-sticky-note me-1"></i>Note
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Trading Signals -->
+                            <div class="control-section">
+                                <div class="section-label">
+                                    <i class="fas fa-exchange-alt text-success me-1"></i>
+                                    <span>Signals</span>
+                                </div>
+                                <div class="control-items">
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="signal-options" data-bs-toggle="dropdown">
+                                            <i class="fas fa-chart-line me-1"></i>Add
+                                        </button>
+                                        <div class="dropdown-menu p-3" style="min-width: 220px;">
+                                            <h6 class="dropdown-header">
+                                                <i class="fas fa-bullseye me-2"></i>Entry Signals
+                                            </h6>
+                                            <div class="mb-3">
+                                                <label for="signal-label" class="form-label small">Custom Label (optional)</label>
+                                                <input type="text" class="form-control form-control-sm" id="signal-label" placeholder="e.g., Breakout Entry">
+                                            </div>
+                                            <div class="d-grid gap-2 mb-3">
+                                                <button class="btn btn-success btn-sm" id="add-buy-signal">
+                                                    <i class="fas fa-arrow-up me-1"></i>Buy Signal
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" id="add-sell-signal">
+                                                    <i class="fas fa-arrow-down me-1"></i>Sell Signal
+                                                </button>
+                                            </div>
+                                            
+                                            <h6 class="dropdown-header">
+                                                <i class="fas fa-shield-alt me-2"></i>Risk Management
+                                            </h6>
+                                            <div class="d-grid gap-2 mb-3">
+                                                <button class="btn btn-info btn-sm" id="add-tp-sl-bullish">
+                                                    <i class="fas fa-chart-line me-1"></i>Bullish TP/SL
+                                                </button>
+                                                <button class="btn btn-warning btn-sm" id="add-tp-sl-bearish">
+                                                    <i class="fas fa-chart-line-down me-1"></i>Bearish TP/SL
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="d-grid">
+                                                <button class="btn btn-outline-secondary btn-sm" id="clear-signals-btn">
+                                                    <i class="fas fa-trash me-1"></i>Clear All
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- View Controls -->
+                            <div class="control-section">
+                                <div class="section-label">
+                                    <i class="fas fa-search text-secondary me-1"></i>
+                                    <span>View</span>
+                                </div>
+                                <div class="control-items">
+                                    <div class="view-controls-inline" id="chartControls">
+                                        <!-- Zoom buttons will be added here via JavaScript -->
+                                        <button class="btn btn-outline-secondary btn-sm" id="reset-zoom-btn">
+                                            <i class="fas fa-home me-1"></i>Reset
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden checkboxes for compatibility -->
+                        <div style="display: none;">
+                            <input class="form-check-input" type="checkbox" id="sma-checkbox">
+                            <input class="form-check-input" type="checkbox" id="rsi-checkbox">
+                            <input class="form-check-input" type="checkbox" id="macd-checkbox">
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div id="stockChart"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="row">
+            <div class="col-md-6 d-flex flex-column">
+                <!-- Prediction Section -->
+                <section id="prediction-section" class="mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Price Prediction
+                            </h5>
+                            <div id="prediction-result" class="prediction-grid fade-in">
+                                <!-- Prediction results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Market Analysis Section -->
+                <section id="market-analysis-section" class="mb-4 flex-grow-1">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Market Analysis
+                            </h5>
+                            <div id="market-info" class="fade-in">
+                                <!-- Market analysis info will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="col-md-6">
+                <!-- Company Info Section -->
+                <section id="company-info-section" class="mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-building me-2"></i>
+                                Company Information
+                            </h5>
+                            <div id="company-info" class="info-grid fade-in">
+                                <!-- Company info will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Financials Section -->
+        <section id="financials-section" class="mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        Financial Information
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="financial-section">
+                                <h6>Income Statement</h6>
+                                <div id="income-statement">
+                                    <!-- Income statement data will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="financial-section">
+                                <h6>Balance Sheet</h6>
+                                <div id="balance-sheet">
+                                    <!-- Balance sheet data will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="financial-section">
+                                <h6>Cash Flow</h6>
+                                <div id="cash-flow">
+                                    <!-- Cash flow data will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 TWT6123 Goh Shun Da 1231303151 Assignment</p>
+        </div>
+    </footer>
+
+    <!-- Settings Panels -->
+    <div class="modal fade" id="rsiSettingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">RSI Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rsi-period" class="form-label">Period</label>
+                        <input type="number" class="form-control" id="rsi-period" min="2" max="50" value="14">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-overbought" class="form-label">Overbought Level</label>
+                        <input type="number" class="form-control" id="rsi-overbought" min="70" max="90" value="70">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-oversold" class="form-label">Oversold Level</label>
+                        <input type="number" class="form-control" id="rsi-oversold" min="10" max="30" value="30">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-color" class="form-label">Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="rsi-color" value="#9966CC">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-width" class="form-label">Line Width</label>
+                        <select class="form-select" id="rsi-width">
+                            <option value="1">Thin (1px)</option>
+                            <option value="2" selected>Medium (2px)</option>
+                            <option value="3">Thick (3px)</option>
+                            <option value="4">Very Thick (4px)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-style" class="form-label">Line Style</label>
+                        <select class="form-select" id="rsi-style">
+                            <option value="solid" selected>Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-overbought-color" class="form-label">Overbought Color</label>
+                        <input type="color" class="form-control form-control-color" id="rsi-overbought-color" value="#ff4444">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rsi-oversold-color" class="form-label">Oversold Color</label>
+                        <input type="color" class="form-control form-control-color" id="rsi-oversold-color" value="#44ff44">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-rsi-settings">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MACD Settings Modal -->
+    <div class="modal fade" id="macdSettingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">MACD Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="macd-fast" class="form-label">Fast Period</label>
+                        <input type="number" class="form-control" id="macd-fast" min="5" max="30" value="12">
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-slow" class="form-label">Slow Period</label>
+                        <input type="number" class="form-control" id="macd-slow" min="15" max="50" value="26">
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-signal" class="form-label">Signal Period</label>
+                        <input type="number" class="form-control" id="macd-signal" min="5" max="20" value="9">
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-line-color" class="form-label">MACD Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="macd-line-color" value="#2196F3">
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-signal-color" class="form-label">Signal Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="macd-signal-color" value="#FF9800">
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-histogram-color" class="form-label">Histogram Color</label>
+                        <input type="color" class="form-control form-control-color" id="macd-histogram-color" value="#4CAF50">
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-width" class="form-label">Line Width</label>
+                        <select class="form-select" id="macd-width">
+                            <option value="1">Thin (1px)</option>
+                            <option value="2" selected>Medium (2px)</option>
+                            <option value="3">Thick (3px)</option>
+                            <option value="4">Very Thick (4px)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="macd-style" class="form-label">Line Style</label>
+                        <select class="form-select" id="macd-style">
+                            <option value="solid" selected>Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-macd-settings">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addNoteModalLabel">Add Note</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="note-title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="note-title" placeholder="Enter note title">
+                    </div>
+                    <div class="mb-3">
+                        <label for="note-content" class="form-label">Content</label>
+                        <textarea class="form-control" id="note-content" rows="4" placeholder="Enter your note content..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="note-color" class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-sm" id="note-color" value="#3b82f6">
+                    </div>
+                    <div class="mb-3">
+                        <label for="note-type" class="form-label">Type</label>
+                        <select class="form-select" id="note-type">
+                            <option value="general">General Note</option>
+                            <option value="analysis">Technical Analysis</option>
+                            <option value="news">News/Event</option>
+                            <option value="reminder">Reminder</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-note">Add Note</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Prediction Modal -->
+    <div class="modal fade" id="predictionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-crystal-ball me-2"></i>
+                        Advanced Price Prediction
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Prediction Models</h6>
+                            <div id="prediction-models" class="mb-4">
+                                <!-- Prediction model results will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Settings</h6>
+                            <div class="mb-3">
+                                <label for="prediction-days" class="form-label">Prediction Days</label>
+                                <select class="form-select" id="prediction-days">
+                                    <option value="1" selected>1 Day</option>
+                                    <option value="3">3 Days</option>
+                                    <option value="7">1 Week</option>
+                                    <option value="14">2 Weeks</option>
+                                    <option value="30">1 Month</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="prediction-method" class="form-label">Primary Method</label>
+                                <select class="form-select" id="prediction-method">
+                                    <option value="combined" selected>Combined Model</option>
+                                    <option value="linear">Linear Regression</option>
+                                    <option value="moving">Moving Average</option>
+                                    <option value="exponential">Exponential Smoothing</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary w-100" id="update-prediction">
+                                <i class="fas fa-sync-alt me-1"></i>Update Prediction
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h6 class="mb-3">Prediction Chart</h6>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="prediction-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SMA Settings Modal -->
+    <div class="modal fade" id="smaSettingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">SMA Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="sma-period" class="form-label">Period</label>
+                        <input type="number" class="form-control" id="sma-period" min="5" max="200" value="20">
+                    </div>
+                    <div class="mb-3">
+                        <label for="sma-color" class="form-label">Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="sma-color" value="#FF6B6B">
+                    </div>
+                    <div class="mb-3">
+                        <label for="sma-width" class="form-label">Line Width</label>
+                        <select class="form-select" id="sma-width">
+                            <option value="1">Thin (1px)</option>
+                            <option value="2" selected>Medium (2px)</option>
+                            <option value="3">Thick (3px)</option>
+                            <option value="4">Very Thick (4px)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sma-style" class="form-label">Line Style</label>
+                        <select class="form-select" id="sma-style">
+                            <option value="solid" selected>Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-sma-settings">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome Free CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+    <!-- Custom JS -->
+    <script type="module" src="script.js"></script>
+    <script>
+    // 自动根据URL参数搜索
+    window.addEventListener('DOMContentLoaded', function() {
+        // Fix for the reset zoom button
+        document.getElementById('reset-zoom-btn').addEventListener('click', function() {
+            if (window.stockChart) {
+                window.stockChart.resetZoom();
+            }
+        });
+        
+        // URL参数搜索会在脚本中处理，这里不需要重复处理
+        // 默认加载AAPL的逻辑已经在script.js中实现
+    });
+    </script>
+</body>
+</html> 

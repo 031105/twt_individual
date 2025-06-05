@@ -1,0 +1,33 @@
+{
+  "name": "stock-analysis-web-application",
+  "version": "1.0.0",
+  "description": "A comprehensive stock analysis web application with advanced charting and prediction capabilities",
+  "main": "server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "export PATH=\"/opt/homebrew/bin:$PATH\" && node server.js",
+    "dev": "export PATH=\"/opt/homebrew/bin:$PATH\" && node server.js",
+    "start-safe": "./start.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "stock",
+    "analysis",
+    "chart",
+    "finance",
+    "prediction",
+    "technical-indicators"
+  ],
+  "author": "Stock Analysis Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "yahoo-finance2": "^2.11.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

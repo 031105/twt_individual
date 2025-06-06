@@ -193,65 +193,6 @@
                                     <button class="btn btn-outline-info btn-sm" id="add-note-btn">
                                         <i class="fas fa-sticky-note me-1"></i>Note
                                     </button>
-                                    <div class="dropdown d-inline-block">
-                                        <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" id="shape-options" data-bs-toggle="dropdown">
-                                            <i class="fas fa-shapes me-1"></i>Shape
-                                        </button>
-                                        <div class="dropdown-menu p-3" style="min-width: 280px;">
-                                            <h6 class="dropdown-header">
-                                                <i class="fas fa-shapes me-2"></i>Shape Tools
-                                            </h6>
-                                            <div class="row g-2 mb-3">
-                                                <div class="col-6">
-                                                    <label for="shape-type" class="form-label small mb-1">Shape</label>
-                                                    <select class="form-select form-select-sm" id="shape-type">
-                                                        <option value="rectangle">Rectangle</option>
-                                                        <option value="circle">Circle</option>
-                                                        <option value="arrow">Arrow</option>
-                                                        <option value="triangle">Triangle</option>
-                                                        <option value="diamond">Diamond</option>
-                                                        <option value="star">Star</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-6">
-                                                    <label for="shape-color" class="form-label small mb-1">Color</label>
-                                                    <input type="color" class="form-control form-control-sm" id="shape-color" value="#3b82f6">
-                                                </div>
-                                            </div>
-                                            <div class="row g-2 mb-3">
-                                                <div class="col-6">
-                                                    <label for="shape-size" class="form-label small mb-1">Size</label>
-                                                    <select class="form-select form-select-sm" id="shape-size">
-                                                        <option value="20">Small</option>
-                                                        <option value="30" selected>Medium</option>
-                                                        <option value="40">Large</option>
-                                                        <option value="50">X-Large</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-6">
-                                                    <label for="shape-opacity" class="form-label small mb-1">Opacity</label>
-                                                    <select class="form-select form-select-sm" id="shape-opacity">
-                                                        <option value="0.3">30%</option>
-                                                        <option value="0.5">50%</option>
-                                                        <option value="0.7" selected>70%</option>
-                                                        <option value="1.0">100%</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="shape-label" class="form-label small">Label (optional)</label>
-                                                <input type="text" class="form-control form-control-sm" id="shape-label" placeholder="e.g., Support Level">
-                                            </div>
-                                            <div class="d-grid gap-2">
-                                                <button class="btn btn-primary btn-sm" id="add-shape-btn">
-                                                    <i class="fas fa-plus me-1"></i>Add Shape
-                                                </button>
-                                                <button class="btn btn-outline-secondary btn-sm" id="clear-shapes-btn">
-                                                    <i class="fas fa-eraser me-1"></i>Clear Shapes
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
@@ -750,8 +691,8 @@
     <script type="module" src="utils/indicators.js"></script>
     <script type="module" src="utils/prediction.js"></script>
     <script type="module" src="script.js"></script>
-    <script src="volume-shapes-patch.js"></script>
     <script src="comprehensive-fix.js"></script>
+    <script src="drawing-tools-fix.js"></script>
     <script>
     // 自动根据URL参数搜索
     window.addEventListener('DOMContentLoaded', function() {

@@ -62,6 +62,7 @@ function loadAnnotationsFromStorage(symbol) {
         if (savedData) {
             const annotationsData = JSON.parse(savedData);
             
+            // Validate data structure - make shapes optional for backward compatibility
             if (annotationsData.lines && annotationsData.signals && 
                 annotationsData.notes && annotationsData.tpsl) {
                 
@@ -2512,7 +2513,81 @@ function addEventListenersForDrawLine() {
         });
     }
     
+    // Shape controls
+    const shapeTypeSelect = document.getElementById('shape-type');
+    const shapeColorPicker = document.getElementById('shape-color');
+    const shapeSizeSelect = document.getElementById('shape-size');
+    const shapeOpacitySelect = document.getElementById('shape-opacity');
+    const shapeLabelInput = document.getElementById('shape-label');
+    const addShapeBtn = document.getElementById('add-shape-btn');
+    const clearShapesBtn = document.getElementById('clear-shapes-btn');
+    
+    // Initialize shape settings
+    if (shapeTypeSelect) shapeTypeSelect.value = shapeSettings.type;
+    if (shapeColorPicker) shapeColorPicker.value = shapeSettings.color;
+    if (shapeSizeSelect) shapeSizeSelect.value = shapeSettings.size;
+    if (shapeOpacitySelect) shapeOpacitySelect.value = shapeSettings.opacity;
+    
+    // Shape settings event listeners
+    if (shapeTypeSelect) {
+        shapeTypeSelect.addEventListener('change', function() {
+            shapeSettings.type = this.value;
+        });
     }
+    
+    if (shapeColorPicker) {
+        shapeColorPicker.addEventListener('change', function() {
+            shapeSettings.color = this.value;
+        });
+    }
+    
+    if (shapeSizeSelect) {
+        shapeSizeSelect.addEventListener('change', function() {
+            shapeSettings.size = parseInt(this.value);
+        });
+    }
+    
+    if (shapeOpacitySelect) {
+        shapeOpacitySelect.addEventListener('change', function() {
+            shapeSettings.opacity = parseFloat(this.value);
+        });
+    }
+    
+    if (shapeLabelInput) {
+        shapeLabelInput.addEventListener('input', function() {
+            shapeSettings.label = this.value;
+        });
+    }
+    
+    // Add shape button
+    if (addShapeBtn) {
+        addShapeBtn.addEventListener('click', function() {
+            if (!stockChart) {
+                showError('Chart not available. Please load stock data first.');
+                return;
+            }
+            
+            shapeMode = true;
+            this.classList.add('active');
+            this.innerHTML = '<i class="fas fa-crosshairs me-1"></i>Click on Chart';
+            showInfo(`Shape mode ON: Click on the chart to add a ${shapeSettings.type}.`);
+            
+            // Close dropdown
+            const shapeDropdown = document.getElementById('shape-options');
+            const dropdownInstance = bootstrap.Dropdown.getInstance(shapeDropdown);
+            if (dropdownInstance) {
+                dropdownInstance.hide();
+            }
+        });
+    }
+    
+    // Clear shapes button
+    if (clearShapesBtn) {
+        clearShapesBtn.addEventListener('click', () => {
+            clearAllShapes();
+        });
+    }
+}
 
 // Separate function for draw button click handler
 function handleDrawButtonClick() {
@@ -2596,6 +2671,26 @@ function clearAllSignals() {
     }
 }
 
+// Clear all shapes
+function clearAllShapes() {
+    if (stockChart && stockChart.options.plugins.annotation) {
+        const annotations = stockChart.options.plugins.annotation.annotations;
+        Object.keys(annotations).forEach(key => {
+            if (key.startsWith('shape_')) {
+                delete annotations[key];
+            }
+        });
+        stockChart.update('none');
+        chartAnnotations.shapes = [];
+        
+        // Auto-save annotations after clearing
+        if (window.currentSymbol) {
+            saveAnnotationsToStorage(window.currentSymbol);
+        }
+        
+        showInfo('All shapes cleared.');
+    }
+}
 
 // Add trend line to chart
 function addTrendLine(point1, point2) {
@@ -3257,6 +3352,18 @@ function handleChartClick(event, elements, ctx) {
         return;
     }
     
+    // Handle shape mode
+    if (shapeMode) {
+        addShapeToChart(dataX, dataY);
+        shapeMode = false;
+        // Reset shape button
+        const shapeBtn = document.getElementById('add-shape-btn');
+        if (shapeBtn) {
+            shapeBtn.classList.remove('active');
+            shapeBtn.innerHTML = '<i class="fas fa-plus me-1"></i>Add Shape';
+        }
+        return;
+    }
     
     // Handle signal mode
     if (signalMode) {
@@ -3299,6 +3406,8 @@ function handleChartClick(event, elements, ctx) {
             annotationType = 'tpsl_group';
         } else if (clickedAnnotation.id.startsWith('trendLine')) {
             annotationType = 'line';
+        } else if (clickedAnnotation.id.startsWith('shape_')) {
+            annotationType = 'shape';
         }
         
         selectAnnotation(clickedAnnotation.id, annotationType);
@@ -3380,6 +3489,166 @@ function addSignalToChart(x, y, signalType) {
     showInfo(`${signalType.toUpperCase()} signal "${customLabel}" added at $${y.toFixed(2)}`);
 }
 
+// Add shape to chart
+function addShapeToChart(x, y) {
+    if (!stockChart || !stockChart.options.plugins.annotation) return;
+    
+    const shapeId = 'shape_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const annotations = stockChart.options.plugins.annotation.annotations;
+    
+    const shapeColor = shapeSettings.color;
+    const shapeSize = shapeSettings.size;
+    const shapeOpacity = shapeSettings.opacity;
+    const shapeType = shapeSettings.type;
+    const shapeLabel = shapeSettings.label;
+    
+    let annotation = {};
+    
+    switch (shapeType) {
+        case 'rectangle':
+            annotation = {
+                type: 'box',
+                xMin: new Date(x - 86400000), // 1 day width
+                xMax: new Date(x + 86400000),
+                yMin: y - (y * 0.02), // 2% height
+                yMax: y + (y * 0.02),
+                backgroundColor: shapeColor + Math.floor(shapeOpacity * 255).toString(16).padStart(2, '0'),
+                borderColor: shapeColor,
+                borderWidth: 2,
+                draggable: true
+            };
+            break;
+            
+        case 'circle':
+            annotation = {
+                type: 'point',
+                xValue: x,
+                yValue: y,
+                backgroundColor: shapeColor + Math.floor(shapeOpacity * 255).toString(16).padStart(2, '0'),
+                borderColor: shapeColor,
+                borderWidth: 3,
+                radius: shapeSize,
+                draggable: true
+            };
+            break;
+            
+        case 'arrow':
+            annotation = {
+                type: 'line',
+                xMin: x,
+                xMax: new Date(x + 86400000 * 2),
+                yMin: y,
+                yMax: y,
+                borderColor: shapeColor,
+                borderWidth: 4,
+                label: {
+                    enabled: true,
+                    content: '→',
+                    position: 'end',
+                    backgroundColor: shapeColor,
+                    color: '#ffffff',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 4
+                },
+                draggable: true
+            };
+            break;
+            
+        case 'triangle':
+            annotation = {
+                type: 'point',
+                xValue: x,
+                yValue: y,
+                backgroundColor: shapeColor + Math.floor(shapeOpacity * 255).toString(16).padStart(2, '0'),
+                borderColor: shapeColor,
+                borderWidth: 3,
+                radius: shapeSize,
+                pointStyle: 'triangle',
+                draggable: true
+            };
+            break;
+            
+        case 'diamond':
+            annotation = {
+                type: 'point',
+                xValue: x,
+                yValue: y,
+                backgroundColor: shapeColor + Math.floor(shapeOpacity * 255).toString(16).padStart(2, '0'),
+                borderColor: shapeColor,
+                borderWidth: 3,
+                radius: shapeSize,
+                pointStyle: 'rectRot',
+                draggable: true
+            };
+            break;
+            
+        case 'star':
+            annotation = {
+                type: 'point',
+                xValue: x,
+                yValue: y,
+                backgroundColor: shapeColor + Math.floor(shapeOpacity * 255).toString(16).padStart(2, '0'),
+                borderColor: shapeColor,
+                borderWidth: 3,
+                radius: shapeSize,
+                pointStyle: 'star',
+                draggable: true
+            };
+            break;
+            
+        default:
+            // Default to circle for unknown shapes
+            annotation = {
+                type: 'point',
+                xValue: x,
+                yValue: y,
+                backgroundColor: shapeColor,
+                borderColor: shapeColor,
+                borderWidth: 3,
+                radius: shapeSize,
+                draggable: true
+            };
+    }
+    
+    // Add label if provided
+    if (shapeLabel && shapeLabel.trim()) {
+        annotation.label = {
+            enabled: true,
+            content: shapeLabel,
+            position: 'top',
+            backgroundColor: shapeColor,
+            color: '#ffffff',
+            font: { size: 11, weight: 'bold' },
+            padding: 6,
+            cornerRadius: 4,
+            yAdjust: -10
+        };
+    }
+    
+    // Add to chart
+    annotations[shapeId] = annotation;
+    stockChart.update('none');
+    
+    // Store in annotations
+    chartAnnotations.shapes.push({
+        id: shapeId,
+        type: shapeType,
+        x: x,
+        y: y,
+        color: shapeColor,
+        size: shapeSize,
+        opacity: shapeOpacity,
+        label: shapeLabel,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Auto-save annotations
+    if (window.currentSymbol) {
+        saveAnnotationsToStorage(window.currentSymbol);
+    }
+    
+    showInfo(`${shapeType.charAt(0).toUpperCase() + shapeType.slice(1)} shape added at $${y.toFixed(2)}`);
+}
 
 // Calculate prediction
 function calculatePrediction(data) {
@@ -4295,6 +4564,8 @@ function handleDragHover(event) {
             elementType = 'Line Endpoint';
         } else if (annotation.id.startsWith('trendLine')) {
             elementType = 'Trend Line';
+        } else if (annotation.id.startsWith('shape_')) {
+            elementType = 'Shape';
         } else if (annotation.type === 'tpsl_line') {
             if (annotation.id.includes('_tp')) {
                 elementType = 'Take Profit Line';
@@ -4577,6 +4848,13 @@ function updateStoredAnnotationData(baseId, newPosition) {
         return; // Exit early for signals
     }
     
+    // Update shapes
+    const shapeIndex = chartAnnotations.shapes.findIndex(shape => shape.id === baseId);
+    if (shapeIndex !== -1) {
+        chartAnnotations.shapes[shapeIndex].x = newPosition.x;
+        chartAnnotations.shapes[shapeIndex].y = newPosition.y;
+        return; // Exit early for shapes
+    }
 }
 
 // Update stored line data when endpoints are dragged
@@ -4909,6 +5187,14 @@ function deleteSelectedAnnotation() {
             
             showInfo('Line and endpoints deleted successfully.');
         }
+    } else if (selectedAnnotation.type === 'shape') {
+        // Remove shape
+        delete annotations[baseId];
+        
+        // Remove from stored data
+        chartAnnotations.shapes = chartAnnotations.shapes.filter(shape => shape.id !== baseId);
+        
+        showInfo('Shape deleted successfully.');
     }
     
     stockChart.update('none');

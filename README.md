@@ -2,19 +2,23 @@
 
 A comprehensive web-based stock analysis tool with advanced charting, technical indicators, price prediction, and interactive drawing tools.
 
-## 🚀 Features Implemented
+## 🚀 Features
 
 ### ✅ Core Features
 - **Real-time Stock Data**: Live stock price data with historical charts
 - **Interactive Charts**: Line and Candlestick chart types with zoom/pan functionality
-- **Technical Indicators**: SMA, RSI, MACD with customizable settings
+- **Technical Indicators**: SMA, RSI, MACD, and Volume indicators with customizable settings
 - **Price Prediction**: Advanced multi-model prediction system with confidence intervals
 - **Responsive Design**: Modern UI with light/dark theme support
 
 ### ✅ Advanced Features
-- **Chart Drawing Tools**: Trend lines, support/resistance lines with customizable styles
-- **Signal Markers**: Buy/sell signal annotations on charts
-- **Personal Notes**: Add and manage notes on chart data points
+- **Chart Drawing Tools**: 
+  - Trend lines with customizable colors, widths, and styles
+  - Support and resistance line types
+  - Interactive drawing with click-to-draw interface
+- **Signal Markers**: Buy/sell signal annotations with custom labels
+- **Personal Notes**: Add and manage notes on chart data points with categories
+- **TP/SL Tools**: Take Profit and Stop Loss level markers for risk management
 - **Multiple Timeframes**: 1 week and 1 month data views
 - **Company Information**: Comprehensive fundamental data display
 - **Financial Statements**: Income statement, balance sheet, and cash flow data
@@ -32,30 +36,31 @@ A comprehensive web-based stock analysis tool with advanced charting, technical 
 - **Complete Charting System**:
   - Chart.js with Financial plugin for candlestick charts
   - Interactive annotations with Chart.js Annotation plugin
-  - Zoom and pan controls
+  - Zoom and pan controls with reset functionality
   - Chart type toggle (Line/Candlestick)
   - Technical indicator overlays
 
 - **Drawing Tools**:
-  - Trend line drawing with click-to-draw interface
-  - Customizable line colors, widths, and styles
-  - Support and resistance line types
+  - Trend line drawing with draggable endpoints
+  - Customizable line colors, widths, and styles (solid, dashed, dotted)
+  - Support and resistance line types with labels
   - Clear individual or all lines functionality
 
 - **Signal System**:
-  - Buy/sell signal markers
+  - Buy/sell signal markers with custom labels
+  - TP/SL (Take Profit/Stop Loss) tools for risk management
   - Click-to-place signal functionality
   - Signal management and clearing
 
 - **Notes System**:
   - Rich note creation with title, content, color, and type
   - Note categories (General, Technical Analysis, News/Event, Reminder)
-  - Persistent note storage
+  - Persistent note storage and hover tooltips
 
 ## 🛠️ Technologies Used
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+ modules)
-- **Charting**: Chart.js, Chart.js Financial, ECharts, TradingView Lightweight Charts
+- **Charting**: Chart.js, Chart.js Financial, Chart.js Annotation Plugin
 - **UI Framework**: Bootstrap 5, Font Awesome icons
 - **Backend**: Node.js, Express.js
 - **APIs**: Yahoo Finance API integration
@@ -63,74 +68,44 @@ A comprehensive web-based stock analysis tool with advanced charting, technical 
 
 ## 📋 Prerequisites
 
-- **Node.js v24.1.0 or higher** ⚠️ **重要：必须使用v24+版本**
+- **Node.js v18.0.0 or higher** 
 - npm package manager
 - Modern web browser (Chrome, Firefox, Safari, Edge)
 
 ## 🚀 Installation & Setup
 
-1. **Clone or download the project**:
+1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/031105/twt_individual.git
    cd stock-analysis-web-application
    ```
 
-2. **确保Node.js版本正确** ⚠️ **关键步骤**:
-   ```bash
-   node --version  # 应该显示 v24.x.x
-   ```
-   
-   如果显示的是v18.x.x或其他旧版本，请查看 [故障排除指南](TROUBLESHOOTING.md)
-
-3. **Install dependencies**:
+2. **Install dependencies**:
    ```bash
    npm install
    ```
 
-4. **Start the application** (推荐方式):
+3. **Start the application**:
 
-   **方法 1: 使用安全启动脚本 (推荐)**
+   **Option 1: Using the safe start script (Recommended)**
    ```bash
    ./start.sh
    ```
 
-   **方法 2: 使用npm脚本**
+   **Option 2: Using npm scripts**
    ```bash
    npm run start-safe
    ```
 
-   **方法 3: 标准方式**
+   **Option 3: Standard method**
    ```bash
    npm start
    ```
 
-5. **Open your browser and navigate to**:
+4. **Open your browser and navigate to**:
    ```
    http://localhost:3000
    ```
-
-## ⚠️ 重要提醒
-
-### Node.js 版本兼容性
-此应用需要 **Node.js v24.0.0 或更高版本** 才能正常运行。如果遇到以下错误：
-
-```
-SyntaxError: Unexpected token 'with'
-```
-
-这意味着您的Node.js版本过旧。请：
-
-1. 首先尝试使用安全启动脚本：`./start.sh`
-2. 如果仍有问题，请查看 [故障排除指南](TROUBLESHOOTING.md)
-3. 或者升级您的Node.js版本
-
-### 启动选项对比
-
-| 启动方式 | 优点 | 使用场景 |
-|---------|------|----------|
-| `./start.sh` | 自动检查版本，最安全 | **推荐用于日常使用** |
-| `npm run start-safe` | 使用npm管理，自动设置PATH | 偏好npm命令的用户 |
-| `npm start` | 标准方式 | Node.js版本已确认正确时 |
 
 ## 📖 Usage Guide
 
@@ -140,91 +115,95 @@ SyntaxError: Unexpected token 'with'
 3. **View Chart**: The application will display an interactive chart with current price data
 
 ### Technical Indicators
-1. **Add Indicators**: Click the "+" button next to technical indicators
-2. **Select from Dropdown**: Choose SMA, RSI, or MACD
+1. **Add Indicators**: Click the "+" button next to the indicator dropdown
+2. **Select from Dropdown**: Choose SMA, RSI, MACD, or Volume
 3. **Customize Settings**: Click the gear icon to adjust indicator parameters
 4. **Remove Indicators**: Click the "×" button on indicator badges
 
 ### Chart Drawing Tools
 1. **Draw Trend Lines**:
-   - Click "Draw Line" dropdown
-   - Customize color, width, and style
-   - Click "Start Drawing"
+   - Click "Start Drawing" in the Line dropdown
+   - Customize color, width, style, and line type
    - Click two points on the chart to create a line
+   - Drag endpoints to adjust after creation
    
-2. **Add Signals**:
-   - Click "Signals" dropdown
+2. **Add Trading Signals**:
+   - Click "Add" in the Signals dropdown
    - Choose "Buy Signal" or "Sell Signal"
+   - Add custom labels for context
    - Click on the chart where you want to place the signal
 
 3. **Add Notes**:
-   - Click "Add Note" button
-   - Fill in title, content, select color and type
+   - Click "Note" button in the Tools section
+   - Fill in title, content, select color and category
    - Click "Add Note" to save
+   - Hover over note markers to view content
+
+4. **TP/SL Tools**:
+   - Click "Bullish TP/SL" or "Bearish TP/SL"
+   - Click three points: Entry, Stop Loss, Take Profit
+   - View risk/reward ratio calculation
 
 ### Price Prediction
 - View automatic predictions in the "Price Prediction" section
 - See multiple model predictions with confidence levels
 - Predictions include Moving Average, Exponential Smoothing, Linear Regression, and Combined models
+- Adjust prediction timeframe (1-30 days)
 
 ### Chart Controls
 - **Zoom**: Use mouse wheel or zoom buttons
-- **Pan**: Enable pan mode with the pan button
-- **Reset**: Click "Reset Zoom" to return to original view
+- **Pan**: Drag to pan around the chart
+- **Reset**: Click "Reset" to return to original view
 - **Chart Type**: Toggle between Line and Candlestick charts
 
 ## 🎨 UI Features
 
 ### Modern Design Elements
+- **Compact Layout**: Horizontal control sections for efficient space usage
 - **Gradient Buttons**: Professional gradient styling for all controls
-- **Consistent Heights**: Unified 38px height for all buttons
+- **Consistent Heights**: Unified button heights for visual harmony
 - **Responsive Layout**: Adapts to different screen sizes
-- **Dark/Light Themes**: Toggle between themes with the moon/sun icon
+- **Dark/Light Themes**: Toggle between themes with the theme button
 - **Animated Transitions**: Smooth hover effects and state changes
 
-### Color Scheme
-- **Primary**: Blue gradient (#007bff to #0056b3)
-- **Success**: Green (#28a745)
-- **Danger**: Red (#dc3545)
-- **Warning**: Orange (#ffc107)
-- **Info**: Cyan (#17a2b8)
+### Control Sections
+- **Indicators**: Add and manage technical indicators
+- **Chart**: Chart type and timeframe controls
+- **Tools**: Drawing tools for lines and notes
+- **Signals**: Trading signal placement and TP/SL tools
+- **View**: Zoom and reset controls
 
 ## 🔧 Configuration
 
-### Chart Settings
-- Default theme: Light
-- Zoom enabled on X-axis
-- Technical indicator colors and periods configurable
-- Prediction model parameters adjustable
+### Indicator Settings
+- **SMA**: Period (5-200), color, line width and style
+- **RSI**: Period (2-50), overbought/oversold levels, colors
+- **MACD**: Fast/slow/signal periods, colors for each line
+- **Volume**: Moving average period, up/down colors, chart scale
 
-### API Configuration
-- Yahoo Finance integration for real-time data
-- Caching for performance optimization
-- Error handling and retry mechanisms
+### Drawing Tool Settings
+- **Lines**: Color, width (1-4px), style (solid/dashed/dotted)
+- **Signals**: Custom labels, buy/sell types
+- **Notes**: Title, content, color, category type
 
 ## 📊 Prediction Models
 
 ### 1. Linear Regression
 - Uses least squares regression on recent price data
 - Calculates R-squared for accuracy measurement
-- Configurable lookback period (default: 30 days)
+- Configurable lookback period
 
 ### 2. Moving Average
 - Simple moving average with trend calculation
 - Adaptive to recent price movements
-- Configurable period (default: 20 days)
+- Configurable period
 
 ### 3. Exponential Smoothing
 - Double exponential smoothing with level and trend
 - Alpha and beta parameters for smoothing
 - Responsive to recent price changes
 
-### 4. Autoregressive Model
-- ARIMA-like prediction using historical relationships
-- Multiple regression on lagged values
-- Configurable order (default: 3)
-
-### 5. Combined Model
+### 4. Combined Model
 - Ensemble of all prediction models
 - Weighted average with confidence calculation
 - Multi-step forecasting capability
@@ -235,64 +214,94 @@ SyntaxError: Unexpected token 'with'
 - **MSE** (Mean Squared Error): Squared prediction errors
 - **RMSE** (Root Mean Squared Error): Standard deviation of errors
 - **MAPE** (Mean Absolute Percentage Error): Percentage accuracy
-- **R-squared**: Correlation coefficient for linear models
 - **Confidence Intervals**: Statistical confidence bounds
 
-## 🚧 Known Limitations
+## 🔄 Data Persistence
 
-1. **Data Dependency**: Prediction accuracy depends on data quality and quantity
-2. **Market Volatility**: Predictions may be less accurate during high volatility periods
-3. **API Limits**: Subject to Yahoo Finance API rate limits
-4. **Browser Compatibility**: Requires modern browsers with ES6+ support
+- **Annotations**: All drawings, signals, and notes are automatically saved
+- **Indicator Settings**: User preferences for indicator parameters
+- **Theme Settings**: Light/dark mode preference
+- **Chart State**: Timeframe and chart type selections
 
 ## 🛡️ Error Handling
 
 - Comprehensive error messages for user guidance
 - Graceful fallbacks for missing data
-- Network error recovery
+- Network error recovery with retry mechanisms
 - Input validation and sanitization
+- Loading states and progress indicators
 
-## 🔮 Future Enhancements
+## 🚧 Browser Compatibility
 
-- Real-time data streaming
-- Portfolio tracking
-- Alert system
-- Social features
-- Export functionality
-- Machine learning improvements
-- Mobile app version
+### Supported Browsers
+- **Chrome** 80+
+- **Firefox** 75+
+- **Safari** 13+
+- **Edge** 80+
 
-## 📄 License
+### Requirements
+- ES6+ module support
+- Canvas API support
+- Fetch API support
+- LocalStorage support
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📁 Project Structure
+
+```
+stock-analysis-web-application/
+├── index.html              # Main HTML file
+├── script.js               # Main JavaScript application
+├── style.css               # Custom CSS styles
+├── config.js               # Configuration and constants
+├── server.js               # Node.js Express server
+├── package.json            # NPM dependencies
+├── start.sh                # Safe startup script
+├── utils/
+│   ├── indicators.js       # Technical indicators
+│   └── prediction.js       # Prediction models
+└── mockData/
+    └── sample-data.json     # Sample data for testing
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🎯 Assignment Information
+
+**Course**: TWT6123 Web Development  
+**Student**: Goh Shun Da  
+**Student ID**: 1231303151  
+**Assignment**: Individual Project - Stock Analysis Web Application  
+
+## 🏆 Key Achievements
+
+- ✅ **Complete Technical Implementation**: Full-featured stock analysis application
+- ✅ **Advanced Charting**: Interactive charts with multiple visualization types
+- ✅ **Prediction System**: Multi-model forecasting with statistical metrics
+- ✅ **Drawing Tools**: Professional-grade annotation and drawing capabilities
+- ✅ **Responsive Design**: Modern UI that works across all device sizes
+- ✅ **Data Persistence**: Automatic saving of user annotations and preferences
+- ✅ **Error Handling**: Robust error handling and user feedback systems
 
 ## 📞 Support
 
-For support and questions:
-- 查看 [故障排除指南](TROUBLESHOOTING.md) 解决常见问题
+For questions or support:
 - Create an issue in the repository
-- Check the documentation
-- Review the code comments
-
-## 🎉 Acknowledgments
-
-- Yahoo Finance for stock data API
-- Chart.js community for excellent charting library
-- Bootstrap team for UI framework
-- Font Awesome for icons
-- Open source community for various utilities
+- Check the code documentation
+- Review the usage guide above
 
 ---
 
-**Version**: 2.0.0  
-**Last Updated**: June 2024  
-**Status**: Production Ready ✅
-**Node.js**: v24.1.0+ Required ⚠️ 
+**Version**: 3.0.0  
+**Last Updated**: December 2024  
+**Status**: Production Ready ✅  
+**Assignment**: TWT6123 Individual Project 🎓 

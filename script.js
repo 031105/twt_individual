@@ -175,6 +175,13 @@ const HOT_STOCKS = [
     { symbol: 'NFLX', name: 'Netflix Inc.' }
 ];
 
+// Popular stock symbols for suggestions
+const POPULAR_STOCKS = [
+    'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'BRK.B', 
+    'V', 'JNJ', 'WMT', 'JPM', 'UNH', 'MA', 'PG', 'HD', 'DIS', 'PYPL',
+    'BAC', 'NFLX', 'ADBE', 'KO', 'PFE', 'TMO', 'COST', 'ABBV', 'PEP'
+];
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     // 首先确保loading状态被清除
@@ -253,8 +260,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize event listeners
 function initializeEventListeners() {
-    // Search button
-    document.querySelector('button').addEventListener('click', searchStock);
+    // Search functionality
+    const searchButton = document.querySelector('.btn-primary');
+    const searchInput = document.getElementById('stock-symbol');
+    
+    // Search button click event
+    if (searchButton) {
+        searchButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            searchStock();
+        });
+    }
+    
+    // Enhanced input handling with suggestions
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('search-suggestions').style.display = 'none';
+                searchStock();
+            }
+        });
+        
+        // Show suggestions on input
+        searchInput.addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            showSearchSuggestions(value);
+        });
+        
+        // Show suggestions on focus if input has value
+        searchInput.addEventListener('focus', (e) => {
+            const value = e.target.value.trim();
+            if (value) {
+                showSearchSuggestions(value);
+            }
+        });
+        
+        // Handle keyboard navigation in suggestions
+        searchInput.addEventListener('keydown', (e) => {
+            const suggestions = document.getElementById('search-suggestions');
+            const items = suggestions.querySelectorAll('.suggestion-item');
+            
+            if (items.length === 0) return;
+            
+            const activeItem = suggestions.querySelector('.suggestion-item.active');
+            let currentIndex = activeItem ? Array.from(items).indexOf(activeItem) : -1;
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % items.length;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+            } else if (e.key === 'Tab' && activeItem) {
+                e.preventDefault();
+                searchInput.value = activeItem.dataset.symbol;
+                suggestions.style.display = 'none';
+                return;
+            } else {
+                return;
+            }
+            
+            // Update active item
+            items.forEach(item => item.classList.remove('active'));
+            if (items[currentIndex]) {
+                items[currentIndex].classList.add('active');
+                searchInput.value = items[currentIndex].dataset.symbol;
+            }
+        });
+    }
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        const suggestions = document.getElementById('search-suggestions');
+        const searchInput = document.getElementById('stock-symbol');
+        
+        if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
     
     // Technical indicators
     document.getElementById('sma-checkbox').addEventListener('change', updateChart);
@@ -623,10 +707,19 @@ function getRecommendationClass(grade) {
 // Main search function
 async function searchStock() {
     const symbol = document.getElementById('stock-symbol').value.trim().toUpperCase();
+    
+    // Enhanced input validation
     if (!symbol) {
-        showError('Please enter a stock symbol');
+        showError('Please enter a stock symbol (e.g., AAPL, MSFT, GOOGL)');
         return;
     }
+    
+    // Basic symbol format validation
+    if (!/^[A-Z]{1,5}$/.test(symbol)) {
+        showError(`"${symbol}" is not a valid stock symbol format. Please use 1-5 letters (e.g., AAPL, MSFT)`);
+        return;
+    }
+    
     showLoading(true);
     
     // Save current annotations before switching (if we have a previous symbol)
@@ -661,18 +754,58 @@ async function searchStock() {
         // 使用新的API端点来获取股票数据，传递timeframe参数
         const stockResponse = await fetch(`/api/stock?symbol=${encodeURIComponent(symbol)}&period=${encodeURIComponent(currentTimeframe)}`);
         
+        // Enhanced error handling with specific messages
         if (!stockResponse.ok) {
-            throw new Error(`Stock API error: ${stockResponse.status} ${stockResponse.statusText}`);
+            let errorMessage;
+            switch (stockResponse.status) {
+                case 404:
+                    errorMessage = `Stock symbol "${symbol}" not found. Please check the symbol and try again.`;
+                    break;
+                case 429:
+                    errorMessage = `Too many requests. Please wait a moment and try again.`;
+                    break;
+                case 503:
+                    errorMessage = `Stock data service temporarily unavailable. Please try again later.`;
+                    break;
+                case 400:
+                    errorMessage = `Invalid request for symbol "${symbol}". Please check the symbol format.`;
+                    break;
+                default:
+                    errorMessage = `Unable to fetch data for "${symbol}". Server error: ${stockResponse.status} ${stockResponse.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         const stockData = await stockResponse.json();
+        
+        // Validate the received data
+        if (!stockData || typeof stockData !== 'object') {
+            throw new Error(`Invalid data received for symbol "${symbol}". Please try again.`);
+        }
+        
+        if (!stockData.historicalData || !Array.isArray(stockData.historicalData) || stockData.historicalData.length === 0) {
+            throw new Error(`No historical data available for "${symbol}". This symbol may be delisted or invalid.`);
+        }
+        
+        // Additional data validation
+        const validDataPoints = stockData.historicalData.filter(d => 
+            d && d.close !== null && d.close !== undefined && !isNaN(d.close) && d.date
+        );
+        
+        if (validDataPoints.length === 0) {
+            throw new Error(`No valid price data found for "${symbol}". Please try a different symbol.`);
+        }
+        
+        // Show success message
+        showInfo(`Successfully loaded data for ${symbol} (${validDataPoints.length} data points)`);
         
         // 获取基本面数据
         let fundamentalData = null;
         try {
             fundamentalData = await fetchFundamentalData(symbol);
         } catch (fundamentalError) {
-            console.error('Error fetching fundamental data:', fundamentalError);
+            console.warn('Error fetching fundamental data:', fundamentalError);
+            showInfo(`Chart loaded for ${symbol}. Fundamental data unavailable.`);
             // 继续执行，即使基本面数据获取失败
         }
         
@@ -686,9 +819,31 @@ async function searchStock() {
         
         // 重新绘制激活的技术指标
         updateChartIndicators();
+        
     } catch (error) {
         console.error('Error in searchStock:', error);
-        showError('Error fetching stock data: ' + error.message);
+        
+        // Enhanced error display with suggestions
+        let errorMessage = error.message;
+        
+        // Add helpful suggestions based on error type
+        if (error.message.includes('not found') || error.message.includes('404')) {
+            errorMessage += ' Suggestion: Try popular symbols like AAPL, MSFT, GOOGL, AMZN, or TSLA.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage += ' Please check your internet connection and try again.';
+        } else if (error.message.includes('format')) {
+            errorMessage += ' Stock symbols should be 1-5 letters (e.g., AAPL for Apple Inc.).';
+        }
+        
+        showError(errorMessage);
+        
+        // Clear any partial data
+        window.currentSymbol = null;
+        const stockDetails = document.getElementById('stock-details');
+        if (stockDetails) {
+            stockDetails.innerHTML = '<div class="text-muted">No stock data loaded</div>';
+        }
+        
     } finally {
         showLoading(false);
     }
@@ -5310,3 +5465,45 @@ if (lineTypeSelect) lineTypeSelect.value = 'trend';
 if (lineColorPicker) lineColorPicker.value = lineSettings.color;
 if (lineWidthSelect) lineWidthSelect.value = lineSettings.width;
 if (lineStyleSelect) lineStyleSelect.value = lineSettings.style;
+
+// Function to show search suggestions
+function showSearchSuggestions(value) {
+    const suggestions = document.getElementById('search-suggestions');
+    if (!suggestions) return;
+    
+    if (!value || value.length === 0) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    const filteredStocks = POPULAR_STOCKS.filter(symbol => 
+        symbol.toLowerCase().includes(value.toLowerCase())
+    ).slice(0, 8); // Show max 8 suggestions
+    
+    if (filteredStocks.length === 0) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    const suggestionHTML = filteredStocks.map(symbol => `
+        <button type="button" class="list-group-item list-group-item-action suggestion-item" 
+                data-symbol="${symbol}" 
+                onclick="selectSuggestion('${symbol}')">
+            <i class="fas fa-chart-line me-2"></i>${symbol}
+        </button>
+    `).join('');
+    
+    suggestions.innerHTML = suggestionHTML;
+    suggestions.style.display = 'block';
+}
+
+// Function to handle suggestion selection
+function selectSuggestion(symbol) {
+    const searchInput = document.getElementById('stock-symbol');
+    const suggestions = document.getElementById('search-suggestions');
+    
+    searchInput.value = symbol;
+    suggestions.style.display = 'none';
+    searchStock();
+}
+

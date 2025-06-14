@@ -80,6 +80,7 @@
                                     <option value="rsi">RSI</option>
                                     <option value="macd">MACD</option>
                                     <option value="volume">Volume</option>
+                                    <option value="stochastic">Stochastic Oscillator</option>
                                 </select>
                                         <button id="add-indicator-btn" class="btn btn-sm btn-primary">
                                             <i class="fas fa-plus"></i>
@@ -105,6 +106,11 @@
                                     <span>Volume</span>
                                             <button class="settings-indicator" data-indicator="volume" title="Volume Settings">⚙️</button>
                                             <button class="remove-indicator" data-indicator="volume">×</button>
+                                        </div>
+                                        <div id="stochastic-indicator" class="indicator-badge-small" style="display: none;">
+                                    <span>Stochastic</span>
+                                            <button class="settings-indicator" data-indicator="stochastic" title="Stochastic Settings">⚙️</button>
+                                            <button class="remove-indicator" data-indicator="stochastic">×</button>
                                         </div>
                                     </div>
                                 </div>
@@ -269,6 +275,7 @@
                             <input class="form-check-input" type="checkbox" id="rsi-checkbox">
                             <input class="form-check-input" type="checkbox" id="macd-checkbox">
                             <input class="form-check-input" type="checkbox" id="volume-checkbox">
+                            <input class="form-check-input" type="checkbox" id="stochastic-checkbox">
                         </div>
                     </div>
 
@@ -583,6 +590,71 @@
                             <canvas id="prediction-chart"></canvas>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stochastic Settings Modal -->
+    <div class="modal fade" id="stochasticSettingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Stochastic Oscillator Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="stochastic-k-period" class="form-label">%K Period</label>
+                        <input type="number" class="form-control" id="stochastic-k-period" min="5" max="50" value="14">
+                        <div class="form-text">Number of periods for %K calculation (typically 14)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-d-period" class="form-label">%D Period</label>
+                        <input type="number" class="form-control" id="stochastic-d-period" min="1" max="10" value="3">
+                        <div class="form-text">Number of periods for %D smoothing (typically 3)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-overbought" class="form-label">Overbought Level</label>
+                        <input type="number" class="form-control" id="stochastic-overbought" min="70" max="95" value="80">
+                        <div class="form-text">Values above this level indicate overbought condition</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-oversold" class="form-label">Oversold Level</label>
+                        <input type="number" class="form-control" id="stochastic-oversold" min="5" max="30" value="20">
+                        <div class="form-text">Values below this level indicate oversold condition</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-k-color" class="form-label">%K Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="stochastic-k-color" value="#9C27B0">
+                        <div class="form-text">Color for the fast %K line</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-d-color" class="form-label">%D Line Color</label>
+                        <input type="color" class="form-control form-control-color" id="stochastic-d-color" value="#FF5722">
+                        <div class="form-text">Color for the slow %D line</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-width" class="form-label">Line Width</label>
+                        <select class="form-select" id="stochastic-width">
+                            <option value="1">Thin (1px)</option>
+                            <option value="2" selected>Medium (2px)</option>
+                            <option value="3">Thick (3px)</option>
+                            <option value="4">Very Thick (4px)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stochastic-style" class="form-label">Line Style</label>
+                        <select class="form-select" id="stochastic-style">
+                            <option value="solid" selected>Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-stochastic-settings">Save</button>
                 </div>
             </div>
         </div>

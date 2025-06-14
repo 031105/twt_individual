@@ -143,6 +143,16 @@ let indicatorSettings = {
         upColor: '#22c55e',
         downColor: '#ef4444',
         opacity: 0.6
+    },
+    stochastic: {
+        kPeriod: INDICATORS_CONFIG.STOCHASTIC.K_PERIOD,
+        dPeriod: INDICATORS_CONFIG.STOCHASTIC.D_PERIOD,
+        overbought: INDICATORS_CONFIG.STOCHASTIC.OVERBOUGHT,
+        oversold: INDICATORS_CONFIG.STOCHASTIC.OVERSOLD,
+        kColor: INDICATORS_CONFIG.STOCHASTIC.COLORS.K_LINE,
+        dColor: INDICATORS_CONFIG.STOCHASTIC.COLORS.D_LINE,
+        lineWidth: 2,
+        lineStyle: 'solid'
     }
 };
 
@@ -156,6 +166,7 @@ function getActiveIndicatorsCount() {
     if (document.getElementById('rsi-checkbox').checked) count++;
     if (document.getElementById('macd-checkbox').checked) count++;
     if (document.getElementById('volume-checkbox').checked) count++;
+    if (document.getElementById('stochastic-checkbox').checked) count++;
     return count;
 }
 
@@ -345,6 +356,7 @@ function initializeEventListeners() {
     document.getElementById('rsi-checkbox').addEventListener('change', updateChart);
     document.getElementById('macd-checkbox').addEventListener('change', updateChart);
     document.getElementById('volume-checkbox').addEventListener('change', updateChart);
+    document.getElementById('stochastic-checkbox').addEventListener('change', updateChart);
     
     // Indicator dropdown and add button
     document.getElementById('add-indicator-btn').addEventListener('click', addSelectedIndicator);
@@ -874,6 +886,7 @@ function updateChart() {
             rsi: document.getElementById('rsi-checkbox').checked,
             macd: document.getElementById('macd-checkbox').checked,
             volume: document.getElementById('volume-checkbox').checked,
+            stochastic: document.getElementById('stochastic-checkbox').checked,
             settings: indicatorSettings
         };
         try {
@@ -1527,6 +1540,85 @@ function addIntegratedIndicators(datasets, scales, validData, theme) {
             console.error('Error calculating MACD:', error);
         }
     }
+    
+    // Stochastic Oscillator
+    if (document.getElementById('stochastic-checkbox').checked) {
+        try {
+            const highs = validData.map(d => d.high);
+            const lows = validData.map(d => d.low);
+            const stochData = TechnicalIndicators.calculateStochastic(
+                highs, 
+                lows, 
+                prices,
+                indicatorSettings.stochastic.kPeriod,
+                indicatorSettings.stochastic.dPeriod
+            );
+            
+            // %K Line
+            const stochKData = dates.map((date, index) => ({
+                x: date,
+                y: stochData.stochK[index]
+            })).filter(d => d.y !== null && !isNaN(d.y));
+            
+            // %D Line  
+            const stochDData = dates.map((date, index) => ({
+                x: date,
+                y: stochData.stochD[index]
+            })).filter(d => d.y !== null && !isNaN(d.y));
+            
+            if (stochKData.length > 0) {
+                // Convert line style to border dash
+                let borderDash = [];
+                if (indicatorSettings.stochastic.lineStyle === 'dashed') {
+                    borderDash = [10, 5];
+                } else if (indicatorSettings.stochastic.lineStyle === 'dotted') {
+                    borderDash = [2, 3];
+                }
+                
+                datasets.push({
+                    label: `Stochastic %K (${indicatorSettings.stochastic.kPeriod})`,
+                    data: stochKData,
+                    borderColor: indicatorSettings.stochastic.kColor,
+                    backgroundColor: 'transparent',
+                    borderWidth: indicatorSettings.stochastic.lineWidth,
+                    borderDash: borderDash,
+                    pointRadius: 0,
+                    tension: 0.1,
+                    yAxisID: 'y3'
+                });
+                
+                datasets.push({
+                    label: `Stochastic %D (${indicatorSettings.stochastic.dPeriod})`,
+                    data: stochDData,
+                    borderColor: indicatorSettings.stochastic.dColor,
+                    backgroundColor: 'transparent',
+                    borderWidth: indicatorSettings.stochastic.lineWidth,
+                    borderDash: borderDash,
+                    pointRadius: 0,
+                    tension: 0.1,
+                    yAxisID: 'y3'
+                });
+                
+                // Add scale
+                scales.y3 = {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    max: 100,
+                    grid: {
+                        drawOnChartArea: false,
+                        color: theme.gridColor
+                    },
+                    ticks: {
+                        color: theme.textColor
+                    }
+                };
+            }
+        } catch (error) {
+            console.error('Error calculating Stochastic:', error);
+        }
+    }
 }
 
 // Function to add the selected indicator
@@ -1575,6 +1667,11 @@ function addSelectedIndicator() {
         // Special handling for Volume
         if (selectedValue === 'volume') {
             showInfo('Volume indicator added. Green bars = price up, Red bars = price down.');
+        }
+        
+        // Special handling for Stochastic
+        if (selectedValue === 'stochastic') {
+            showInfo('Stochastic Oscillator added. Purple line = %K (fast), Orange line = %D (slow). Values: 80+ = overbought, 20- = oversold.');
         }
         
         // Update the chart
@@ -3162,6 +3259,9 @@ function loadSavedIndicatorPreferences() {
             if (prefs.volume !== undefined) {
                 document.getElementById('volume-checkbox').checked = prefs.volume;
             }
+            if (prefs.stochastic !== undefined) {
+                document.getElementById('stochastic-checkbox').checked = prefs.stochastic;
+            }
             
             // Apply saved indicator settings if available
             if (prefs.settings) {
@@ -3177,6 +3277,7 @@ function loadSavedIndicatorPreferences() {
             document.getElementById('rsi-indicator').style.display = prefs.rsi ? 'flex' : 'none';
             document.getElementById('macd-indicator').style.display = prefs.macd ? 'flex' : 'none';
             document.getElementById('volume-indicator').style.display = prefs.volume ? 'flex' : 'none';
+            document.getElementById('stochastic-indicator').style.display = prefs.stochastic ? 'flex' : 'none';
             
             // Check if we exceed the indicator limit and handle it intelligently
             const activeCount = getActiveIndicatorsCount();
@@ -3229,12 +3330,14 @@ function setDefaultIndicatorStates() {
     document.getElementById('rsi-checkbox').checked = false;
     document.getElementById('macd-checkbox').checked = false;
     document.getElementById('volume-checkbox').checked = false;
+    document.getElementById('stochastic-checkbox').checked = false;
     
     // Hide all indicator badges
     document.getElementById('sma-indicator').style.display = 'none';
     document.getElementById('rsi-indicator').style.display = 'none';
     document.getElementById('macd-indicator').style.display = 'none';
     document.getElementById('volume-indicator').style.display = 'none';
+    document.getElementById('stochastic-indicator').style.display = 'none';
     
     console.log('All indicators set to default (off) state');
 }
@@ -3333,6 +3436,39 @@ function setupIndicatorSettings() {
             }
             
             showInfo('MACD settings updated successfully!');
+        });
+    }
+    
+    // Stochastic Settings
+    const stochasticSettingsBtn = document.getElementById('stochastic-settings-btn');
+    const saveStochasticBtn = document.getElementById('save-stochastic-settings');
+    
+    if (stochasticSettingsBtn) {
+        stochasticSettingsBtn.addEventListener('click', () => {
+            openIndicatorSettings('stochastic');
+        });
+    }
+    
+    if (saveStochasticBtn) {
+        saveStochasticBtn.addEventListener('click', () => {
+            indicatorSettings.stochastic.kPeriod = parseInt(document.getElementById('stochastic-k-period').value);
+            indicatorSettings.stochastic.dPeriod = parseInt(document.getElementById('stochastic-d-period').value);
+            indicatorSettings.stochastic.overbought = parseInt(document.getElementById('stochastic-overbought').value);
+            indicatorSettings.stochastic.oversold = parseInt(document.getElementById('stochastic-oversold').value);
+            indicatorSettings.stochastic.kColor = document.getElementById('stochastic-k-color').value;
+            indicatorSettings.stochastic.dColor = document.getElementById('stochastic-d-color').value;
+            indicatorSettings.stochastic.lineWidth = parseInt(document.getElementById('stochastic-width').value);
+            indicatorSettings.stochastic.lineStyle = document.getElementById('stochastic-style').value;
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('stochasticSettingsModal'));
+            modal.hide();
+            
+            // Update chart if Stochastic is active
+            if (document.getElementById('stochastic-checkbox').checked) {
+                updateChart();
+            }
+            
+            showInfo('Stochastic settings updated successfully!');
         });
     }
 }
@@ -4322,6 +4458,21 @@ function openIndicatorSettings(indicator) {
             document.getElementById('macd-style').value = indicatorSettings.macd.lineStyle;
             
             modal = new bootstrap.Modal(document.getElementById('macdSettingsModal'));
+            modal.show();
+            break;
+            
+        case 'stochastic':
+            // Populate Stochastic settings
+            document.getElementById('stochastic-k-period').value = indicatorSettings.stochastic.kPeriod;
+            document.getElementById('stochastic-d-period').value = indicatorSettings.stochastic.dPeriod;
+            document.getElementById('stochastic-overbought').value = indicatorSettings.stochastic.overbought;
+            document.getElementById('stochastic-oversold').value = indicatorSettings.stochastic.oversold;
+            document.getElementById('stochastic-k-color').value = indicatorSettings.stochastic.kColor;
+            document.getElementById('stochastic-d-color').value = indicatorSettings.stochastic.dColor;
+            document.getElementById('stochastic-width').value = indicatorSettings.stochastic.lineWidth;
+            document.getElementById('stochastic-style').value = indicatorSettings.stochastic.lineStyle;
+            
+            modal = new bootstrap.Modal(document.getElementById('stochasticSettingsModal'));
             modal.show();
             break;
             

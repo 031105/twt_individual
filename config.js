@@ -44,6 +44,16 @@ const INDICATORS_CONFIG = {
         MOVING_AVERAGE_PERIOD: 20,
         MA_COLOR: '#3b82f6',
         SCALE_FACTOR: 0.3 // Volume chart height relative to price chart
+    },
+    STOCHASTIC: {
+        K_PERIOD: 14,
+        D_PERIOD: 3,
+        OVERBOUGHT: 80,
+        OVERSOLD: 20,
+        COLORS: {
+            K_LINE: '#9C27B0',
+            D_LINE: '#FF5722'
+        }
     }
 };
 

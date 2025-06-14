@@ -233,6 +233,54 @@ class TechnicalIndicators {
         
         return result;
     }
+
+    // Stochastic Oscillator
+    static calculateStochastic(highs, lows, closes, kPeriod = 14, dPeriod = 3) {
+        const stochK = [];
+        const stochD = [];
+        
+        // Calculate %K values
+        for (let i = 0; i < closes.length; i++) {
+            if (i < kPeriod - 1) {
+                stochK.push(null);
+                continue;
+            }
+            
+            const periodHigh = Math.max(...highs.slice(i - kPeriod + 1, i + 1));
+            const periodLow = Math.min(...lows.slice(i - kPeriod + 1, i + 1));
+            const currentClose = closes[i];
+            
+            if (periodHigh === periodLow) {
+                stochK.push(50); // Default to middle when no range
+            } else {
+                const kValue = ((currentClose - periodLow) / (periodHigh - periodLow)) * 100;
+                stochK.push(kValue);
+            }
+        }
+        
+        // Calculate %D (SMA of %K)
+        for (let i = 0; i < stochK.length; i++) {
+            if (i < dPeriod - 1 || stochK[i] === null) {
+                stochD.push(null);
+                continue;
+            }
+            
+            const validKValues = stochK.slice(i - dPeriod + 1, i + 1)
+                .filter(v => v !== null);
+            
+            if (validKValues.length === dPeriod) {
+                const dValue = validKValues.reduce((sum, val) => sum + val, 0) / dPeriod;
+                stochD.push(dValue);
+            } else {
+                stochD.push(null);
+            }
+        }
+        
+        return {
+            stochK: stochK.map(v => v === null ? 50 : v),
+            stochD: stochD.map(v => v === null ? 50 : v)
+        };
+    }
 }
 
 export default TechnicalIndicators; 

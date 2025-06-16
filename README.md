@@ -277,7 +277,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🎯 Assignment Information
 
-**Course**: TWT6123 Web Development  
+**Course**: TWT6223 Web Development  
 **Student**: Goh Shun Da  
 **Student ID**: 1231303151  
 **Assignment**: Individual Project - Stock Analysis Web Application  
@@ -304,4 +304,4 @@ For questions or support:
 **Version**: 3.0.0  
 **Last Updated**: June 2025
 **Status**: Production Ready ✅  
-**Assignment**: TWT6123 Individual Project 🎓 
+**Assignment**: TWT6223 Individual Project 🎓 
